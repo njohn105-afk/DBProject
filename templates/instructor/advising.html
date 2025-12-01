@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instructor Advising</title>
+</head>
+<body>
+    <h1>Your Advisees</h1>
+
+    {% if advisees %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Action</th>
+        </tr>
+        {% for s in advisees %}
+        <tr>
+            <td>{{ s.ID }}</td>
+            <td>{{ s.name }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('remove_advisee') }}">
+                    <input type="hidden" name="student_id" value="{{ s.ID }}">
+                    <button type="submit">Remove</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>You currently have no advisees.</p>
+    {% endif %}
+
+    <h2>Add Advisee</h2>
+    {% if unassigned_students %}
+    <form method="POST" action="{{ url_for('add_advisee') }}">
+        <label>Select Student:</label>
+        <select name="student_id">
+            {% for s in unassigned_students %}
+            <option value="{{ s.ID }}">{{ s.name }} ({{ s.ID }})</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Add</button>
+    </form>
+    {% else %}
+        <p>No unassigned students available to add.</p>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('instructor_portal') }}">Back to Portal</a>
+</body>
+</html>

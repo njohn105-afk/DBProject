@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Submit/Change Grades</title>
+</head>
+<body>
+    <h1>Submit / Change Grades</h1>
+
+    <!-- Section selection -->
+    <form method="POST">
+        <label>Select Section:</label>
+        <select name="section" onchange="this.form.submit()">
+            <option value="">--Choose a Section--</option>
+            {% for s in sections %}
+            <option value="{{ s.course_id }},{{ s.sec_id }},{{ s.semester }},{{ s.year }}"
+                {% if selected_section == s.course_id ~ ',' ~ s.sec_id ~ ',' ~ s.semester ~ ',' ~ s.year %}selected{% endif %}>
+                {{ s.title }} - {{ s.sec_id }} ({{ s.semester }} {{ s.year }})
+            </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <br>
+
+    {% if students %}
+    <form method="POST">
+        <input type="hidden" name="section" value="{{ selected_section }}">
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Grade</th>
+            </tr>
+            {% for st in students %}
+            <tr>
+                <td>{{ st.ID }}</td>
+                <td>{{ st.name }}</td>
+                <td>
+                    <input type="text" name="grade_{{ st.ID }}" value="{{ st.grade }}">
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+        <button type="submit" name="update_grades" value="1">Save Grades</button>
+    </form>
+    {% elif selected_section %}
+        <p>No students are enrolled in this section.</p>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('instructor_portal') }}">Back to Portal</a>
+</body>
+</html>

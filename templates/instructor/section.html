@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sections & Roster</title>
+</head>
+<body>
+    <h1>Sections & Roster</h1>
+
+    <!-- Step 1: Select Semester -->
+    <form method="POST" action="/instructor-portal/section">
+        <label for="semester">Select Semester:</label>
+        <select name="semester" id="semester" required>
+            {% for sem in semesters %}
+                <option value="{{ sem }}"
+                    {% if selected_semester == sem %} selected {% endif %}>
+                    {{ sem }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Show Sections</button>
+    </form>
+
+    <hr>
+
+    {% if selected_semester %}
+        <h2>Sections in {{ selected_semester }}</h2>
+
+        {% if sections %}
+            <form method="POST" action="/instructor-portal/section">
+                <label for="section_select">Select a section to view roster:</label>
+                <select name="section_id" id="section_select" required>
+                    {% for sec in sections %}
+                        <option value="{{ sec.course_id }}|{{ sec.sec_id }}|{{ sec.semester }}|{{ sec.year }}"
+                            {% if selected_section and
+                                  selected_section.course_id == sec.course_id and
+                                  selected_section.sec_id == sec.sec_id and
+                                  selected_section.semester == sec.semester and
+                                  selected_section.year == sec.year %} selected {% endif %}>
+                            {{ sec.course_id }} - {{ sec.sec_id }} ({{ sec.semester }} {{ sec.year }})
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit">View Roster</button>
+            </form>
+        {% else %}
+            <p>No sections found for this semester.</p>
+        {% endif %}
+    {% endif %}
+
+    <hr>
+
+    {% if selected_section %}
+        <h2>Roster: {{ selected_section.course_id }} - {{ selected_section.sec_id }}</h2>
+        {% if roster %}
+            <table border="1" cellpadding="5">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Action</th>
+                </tr>
+                {% for student in roster %}
+                <tr>
+                    <td>{{ student.ID }}</td>
+                    <td>{{ student.name }}</td>
+                    <td>
+                        <form method="POST" action="/instructor-portal/section/remove" style="display:inline;">
+                            <input type="hidden" name="course_id" value="{{ selected_section.course_id }}">
+                            <input type="hidden" name="sec_id" value="{{ selected_section.sec_id }}">
+                            <input type="hidden" name="semester" value="{{ selected_section.semester }}">
+                            <input type="hidden" name="year" value="{{ selected_section.year }}">
+                            <input type="hidden" name="student_id" value="{{ student.ID }}">
+                            <button type="submit">Remove Student</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No students enrolled in this section.</p>
+        {% endif %}
+    {% endif %}
+
+    <br>
+    <a href="/instructor-portal">Back to Instructor Portal</a>
+</body>
+</html>
