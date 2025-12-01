@@ -85,12 +85,25 @@ def instructor_portal():
     if session.get("role") != "instructor":
         return redirect("/login")
     
-    STUDENT_ID = session["linked_id"]
-    return render_template("instructor/instructor_portal.html")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    
+    instructor_id = session["linked_id"]
+
+    cursor.execute("""
+        SELECT ID, name 
+        FROM instructor
+        WHERE ID = %s
+    """, (instructor_id,))
+    instructor = cursor.fetchone()
+    
+    return render_template("instructor/instructor_portal.html", instructor=instructor)
 
 #update information
 @app.route("/instructor-portal/update-info", methods=["GET", "POST"])
 def update_info_instructor():
+    if session.get("role") != "instructor":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -253,6 +266,8 @@ def instructor_grades():
 #Modify Prereqs
 @app.route("/instructor-portal/prereq", methods=["GET", "POST"])
 def view_prereq():
+    if session.get("role") != "instructor":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -282,6 +297,8 @@ def view_prereq():
                            all_courses=all_courses)
 @app.route("/instructor-portal/prereq/add", methods=["POST"])
 def add_prereq():
+    if session.get("role") != "instructor":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor()
 
@@ -296,6 +313,8 @@ def add_prereq():
 #remove prereq
 @app.route("/instructor-portal/prereq/remove", methods=["POST"])
 def remove_prereq():
+    if session.get("role") != "instructor":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor()
 
@@ -310,6 +329,8 @@ def remove_prereq():
 # View sections and roster
 @app.route("/instructor-portal/section", methods=["GET", "POST"])
 def view_sections():
+    if session.get("role") != "instructor":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
     instructor_id = session.get("linked_id")

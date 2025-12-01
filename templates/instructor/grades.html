@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Submit/Change Grades</title>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body>
     <h1>Submit / Change Grades</h1>
@@ -36,19 +37,19 @@
                 <td>{{ st.ID }}</td>
                 <td>{{ st.name }}</td>
                 <td>
-                    <input type="text" name="grade_{{ st.ID }}" value="{{ st.grade }}">
+                    <input class="form" type="text" name="grade_{{ st.ID }}" value="{{ st.grade }}" placeholder="Enter a Grade">
                 </td>
             </tr>
             {% endfor %}
         </table>
         <br>
-        <button type="submit" name="update_grades" value="1">Save Grades</button>
+        <button class="btn-green" type="submit" name="update_grades" value="1">Save Grades</button>
     </form>
     {% elif selected_section %}
         <p>No students are enrolled in this section.</p>
     {% endif %}
 
     <br>
-    <a href="{{ url_for('instructor_portal') }}">Back to Portal</a>
+    <a class="btn" href="{{ url_for('instructor_portal') }}">Back to Instructor Portal</a>
 </body>
 </html>

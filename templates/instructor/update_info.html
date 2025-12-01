@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Update Info</title>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body>
 
@@ -9,7 +10,7 @@
 
     <form method="POST">
         <label>Name:</label><br>
-        <input type="text" name="name" value="{{ instructor.name }}" required>
+        <input class="form" type="text" name="name" value="{{ instructor.name }}" required>
         <br><br>
 
         <label>Department:</label><br>
@@ -23,11 +24,11 @@
         </select>
         <br><br>
 
-        <button type="submit">Save Changes</button>
+        <button class="btn-green" type="submit">Save Changes</button>
     </form>
 
     <br>
-    <a href="/instructor-portal">Back to Instructor Portal</a>
+    <a class="btn" href="/instructor-portal">Back to Instructor Portal</a>
 
 </body>
 </html>

@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Instructor Advising</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <h1>Your Advisees</h1>
@@ -20,7 +21,7 @@
             <td>
                 <form method="POST" action="{{ url_for('remove_advisee') }}">
                     <input type="hidden" name="student_id" value="{{ s.ID }}">
-                    <button type="submit">Remove</button>
+                    <button class="btn" type="submit">Remove</button>
                 </form>
             </td>
         </tr>
@@ -39,13 +40,13 @@
             <option value="{{ s.ID }}">{{ s.name }} ({{ s.ID }})</option>
             {% endfor %}
         </select>
-        <button type="submit">Add</button>
+        <button class="btn-green" type="submit">Add</button>
     </form>
     {% else %}
         <p>No unassigned students available to add.</p>
     {% endif %}
 
     <br>
-    <a href="{{ url_for('instructor_portal') }}">Back to Portal</a>
+    <a class="btn" href="{{ url_for('instructor_portal') }}">Back to Instructor Portal</a>
 </body>
 </html>

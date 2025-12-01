@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Modify Course Prerequisites</title>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body>
     <h1>Modify Course Prerequisites</h1>
@@ -20,7 +21,7 @@
                 </option>
             {% endfor %}
         </select>
-        <button type="submit">View Prerequisites</button>
+        <button class="btn" type="submit">View Prerequisites</button>
     </form>
 
     <hr>
@@ -38,7 +39,7 @@
                         <form style="display:inline;" method="POST" action="/instructor-portal/prereq/remove">
                             <input type="hidden" name="course_id" value="{{ selected_course.course_id }}">
                             <input type="hidden" name="prereq_id" value="{{ p.prereq_id }}">
-                            <button type="submit">Remove</button>
+                            <button class="btn" type="submit">Remove</button>
                         </form>
                     </li>
                 {% endfor %}
@@ -59,11 +60,11 @@
                     {% endif %}
                 {% endfor %}
             </select>
-            <button type="submit">Add Prerequisite</button>
+            <button class="btn" type="submit">Add Prerequisite</button>
         </form>
 
         <br>
-        <a href="/instructor-portal">Back to Instructor Portal</a>
+        <a class="btn" href="/instructor-portal">Back to Instructor Portal</a>
     {% endif %}
 </body>
 </html>
