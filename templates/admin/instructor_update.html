@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Instructor</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<h1>Update Instructor</h1>
+
+<form method="POST">
+    <input type="hidden" name="id" value="{{ instructor.ID }}">
+
+    <label>Name:</label>
+    <input type="text" name="name" value="{{ instructor.name }}" class="form"><br><br>
+
+    <label>Department:</label>
+    <select name="dept_name" class="form">
+        {% for dept in departments %}
+            <option value="{{ dept.dept_name }}"
+                {% if dept.dept_name == instructor.dept_name %}selected{% endif %}>
+                {{ dept.dept_name }}
+            </option>
+        {% endfor %}
+    </select><br><br>
+
+    <label>Salary:</label>
+    <input type="number" name="salary" value="{{ instructor.salary }}" class="form"><br><br>
+
+    <button type="submit" class="btn-green">Update Instructor</button>
+</form>
+
+<a href="/admin/instructor/list">Back to All Instructors</a>
+</body>
+</html>

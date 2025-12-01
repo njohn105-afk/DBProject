@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+<h1>All Instructors</h1>
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Dept</th>
+        <th>Salary</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for i in instructors %}
+    <tr>
+        <td>{{ i.ID }}</td>
+        <td>{{ i.name }}</td>
+        <td>{{ i.dept_name }}</td>
+        <td>{{ i.salary }}</td>
+        <td>
+            <a href="/admin/instructor/update?id={{ i.ID }}">Edit</a> |
+            <a href="/admin/instructor/delete?id={{ i.ID }}">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<a class="btn" href="/admin/instructor">Back</a>
+</body>
+</html>

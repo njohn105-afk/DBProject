@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+<h1>Create Instructor</h1>
+
+<form method="POST">
+    <label>Name:</label><br>
+    <input type="text" name="name" class="form" required><br><br>
+
+    <label>Department:</label><br>
+    <input type="text" name="dept_name" class="form" required><br><br>
+
+    <label>Salary:</label><br>
+    <input type="number" name="salary" class="form" required><br><br>
+
+    <button class="btn-green">Create</button>
+</form>
+
+<a class="btn" href="/admin/instructor">Back</a>
+</body>
+</html>
