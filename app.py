@@ -541,6 +541,7 @@ def admin_course_delete():
             redirect_url="/student-portal/register"
         )
 
+
 # --------- Section CRUD
 
 @app.route("/admin/section")
@@ -1049,7 +1050,227 @@ def admin_time_slot_delete():
 
 # --------- Instructor CRUD
 
+@app.route("/admin/instructor")
+def admin_instructor_home():
+    if session.get("role") != "admin":
+        return redirect("/login")
+    return render_template("admin/instructor_home.html")
 
+
+@app.route("/admin/instructor/list")
+def admin_instructor_list():
+    if session.get("role") != "admin":
+        return redirect("/login")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM instructor")
+    instructors = cursor.fetchall()
+
+    return render_template("admin/instructor_list.html", instructors=instructors)
+
+
+@app.route("/admin/instructor/create", methods=["GET", "POST"])
+def admin_instructor_create():
+    if session.get("role") != "admin":
+        return redirect("/login")
+
+    db = get_db()
+    cursor = db.cursor()
+
+    if request.method == "POST":
+        name = request.form["name"]
+        dept = request.form["dept_name"]
+        salary = request.form["salary"]
+
+        cursor.execute(
+            "INSERT INTO instructor (name, dept_name, salary) VALUES (%s, %s, %s)",
+            (name, dept, salary)
+        )
+        db.commit()
+
+        return redirect("/admin/instructor")
+
+    return render_template("admin/instructor_create.html")
+
+
+@app.route("/admin/instructor/update", methods=["GET", "POST"])
+def admin_instructor_update():
+    if session.get("role") != "admin":
+        return redirect("/login")
+
+    instructor_id = request.args.get("id")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    # Fetch instructor info
+    cursor.execute("SELECT * FROM instructor WHERE ID = %s", (instructor_id,))
+    instructor = cursor.fetchone()
+    if not instructor:
+        return render_template(
+            "message.html",
+            message="Error: Instructor not found.",
+            category="error",
+            redirect_url="/admin/instructor/list"
+        )
+
+    if request.method == "POST":
+        name = request.form["name"]
+        dept_name = request.form["dept_name"]
+        salary = request.form["salary"]
+
+        cursor.execute("""
+            UPDATE instructor
+            SET name = %s, dept_name = %s, salary = %s
+            WHERE ID = %s
+        """, (name, dept_name, salary, instructor_id))
+        db.commit()
+
+        return render_template(
+            "message.html",
+            message="Instructor updated successfully!",
+            category="success",
+            redirect_url="/admin/instructor/list"
+        )
+
+    # Fetch all departments for dropdown
+    cursor.execute("SELECT dept_name FROM department ORDER BY dept_name")
+    departments = cursor.fetchall()
+
+    return render_template(
+        "admin/instructor_update.html",
+        instructor=instructor,
+        departments=departments
+    )
+
+@app.route("/admin/instructor/delete")
+def admin_instructor_delete():
+    if session.get("role") != "admin":
+        return redirect("/login")
+
+    id = request.args.get("id")
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("DELETE FROM instructor WHERE ID = %s", (id,))
+    db.commit()
+
+    return redirect("/admin/instructor/list")
+
+# --------------- Student CRUD
+
+# --------- Student CRUD
+
+@app.route("/admin/student")
+def admin_student_home():
+    if session.get("role") != "admin":
+        return redirect("/login")
+    return render_template("admin/student_home.html")
+
+
+@app.route("/admin/student/list")
+def admin_student_list():
+    if session.get("role") != "admin":
+        return redirect("/login")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM student ORDER BY ID;")
+    students = cursor.fetchall()
+
+    return render_template("admin/student_list.html", students=students)
+
+
+@app.route("/admin/student/create", methods=["GET", "POST"])
+def admin_student_create():
+    if session.get("role") != "admin":
+        return redirect("/login")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT dept_name FROM department")
+    departments = cursor.fetchall()
+
+    if request.method == "POST":
+        ID = request.form["ID"]
+        name = request.form["name"]
+        dept_name = request.form["dept_name"]
+        tot_cred = request.form["tot_cred"]
+
+        cursor.execute("""
+            INSERT INTO student (ID, name, dept_name, tot_cred)
+            VALUES (%s, %s, %s, %s)
+        """, (ID, name, dept_name, tot_cred))
+        db.commit()
+
+        return render_template("message.html",
+                               message="Student created successfully.",
+                               category="success",
+                               redirect_url="/admin/student")
+
+    return render_template("admin/student_create.html", departments=departments)
+
+
+@app.route("/admin/student/update", methods=["GET", "POST"])
+def admin_student_update():
+    if session.get("role") != "admin":
+        return redirect("/login")
+
+    student_id = request.args.get("ID")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM student WHERE ID = %s", (student_id,))
+    student = cursor.fetchone()
+
+    if not student:
+        return render_template("message.html",
+                               message="Error: Student not found.",
+                               category="error",
+                               redirect_url="/admin/student")
+
+    cursor.execute("SELECT dept_name FROM department")
+    departments = cursor.fetchall()
+
+    if request.method == "POST":
+        new_id = request.form["ID"]
+        name = request.form["name"]
+        dept_name = request.form["dept_name"]
+        tot_cred = request.form["tot_cred"]
+
+        cursor.execute("""
+            UPDATE student
+            SET ID=%s, name=%s, dept_name=%s, tot_cred=%s
+            WHERE ID=%s
+        """, (new_id, name, dept_name, tot_cred, student_id))
+        db.commit()
+
+        return render_template("message.html",
+                               message="Student updated successfully.",
+                               category="success",
+                               redirect_url="/admin/student")
+
+    return render_template("admin/student_update.html",
+                           student=student,
+                           departments=departments)
+
+
+@app.route("/admin/student/delete")
+def admin_student_delete():
+    if session.get("role") != "admin":
+        return redirect("/login")
+
+    student_id = request.args.get("ID")
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("DELETE FROM student WHERE ID = %s", (student_id,))
+    db.commit()
+
+    return render_template("message.html",
+                           message="Student deleted successfully.",
+                           category="success",
+                           redirect_url="/admin/student")
 
 
 
