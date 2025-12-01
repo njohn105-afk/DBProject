@@ -77,7 +77,290 @@ def logout():
     session.clear()
     return redirect("/login")
 
+################### INSTRUCTOR
 
+#instructor portal
+@app.route("/instructor-portal")
+def instructor_portal():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+    
+    STUDENT_ID = session["linked_id"]
+    return render_template("instructor/instructor_portal.html")
+
+#update information
+@app.route("/instructor-portal/update-info", methods=["GET", "POST"])
+def update_info_instructor():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    instructor_id = session.get("linked_id")
+
+    cursor.execute("""
+        SELECT ID, name, dept_name
+        FROM instructor
+        WHERE ID = %s
+    """, (instructor_id,))
+    instructor = cursor.fetchone()
+
+    cursor.execute("SELECT dept_name FROM department ORDER BY dept_name;")
+    departments = cursor.fetchall()
+
+    if request.method == "POST":
+        new_name = request.form.get("name")
+        new_dept = request.form.get("dept_name")
+
+        update_query = """
+            UPDATE instructor
+            SET name = %s, dept_name = %s
+            WHERE ID = %s
+        """
+        cursor.execute(update_query, (new_name, new_dept, instructor_id))
+        db.commit()
+
+        return render_template("instructor/update_success.html",
+                               name=new_name, dept=new_dept)
+
+    return render_template("instructor/update_info.html",
+                           instructor=instructor, departments=departments)
+
+
+# View advised students
+@app.route("/instructor-portal/advising", methods=["GET"])
+def instructor_advising():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+
+    instructor_id = session.get("linked_id")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT s.ID, s.name
+        FROM student s
+        JOIN advisor a ON s.ID = a.s_id
+        WHERE a.i_id = %s
+    """, (instructor_id,))
+    advisees = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT ID, name
+        FROM student
+        WHERE ID NOT IN (SELECT s_id FROM advisor)
+    """)
+    unassigned_students = cursor.fetchall()
+
+    return render_template("instructor/advising.html",
+                           advisees=advisees,
+                           unassigned_students=unassigned_students)
+
+
+# Add advised student
+@app.route("/instructor-portal/advising/add", methods=["POST"])
+def add_advisee():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+
+    instructor_id = session.get("linked_id")
+    student_id = request.form.get("student_id")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM student WHERE ID = %s", (student_id,))
+    student = cursor.fetchone()
+    if not student:
+        return "Student ID not found!"
+
+    cursor.execute("SELECT * FROM advisor WHERE s_id = %s", (student_id,))
+    if cursor.fetchone():
+        return "This student already has an advisor."
+
+    cursor.execute("INSERT INTO advisor (s_id, i_id) VALUES (%s, %s)", (student_id, instructor_id))
+    db.commit()
+
+    return redirect("/instructor-portal/advising")
+
+
+# Remove advised student
+@app.route("/instructor-portal/advising/remove", methods=["POST"])
+def remove_advisee():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+
+    instructor_id = session.get("linked_id")
+    student_id = request.form.get("student_id")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("DELETE FROM advisor WHERE s_id = %s AND i_id = %s", (student_id, instructor_id))
+    db.commit()
+
+    return redirect("/instructor-portal/advising")
+
+# View and submit/change grades
+@app.route("/instructor-portal/grades", methods=["GET", "POST"])
+def instructor_grades():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+
+    instructor_id = session.get("linked_id")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT s.course_id, s.sec_id, s.semester, s.year, c.title
+        FROM teaches t
+        JOIN section s ON t.course_id = s.course_id AND t.sec_id = s.sec_id
+                     AND t.semester = s.semester AND t.year = s.year
+        JOIN course c ON s.course_id = c.course_id
+        WHERE t.ID = %s
+    """, (instructor_id,))
+    sections = cursor.fetchall()
+
+    selected_section = request.form.get("section") or None
+    students = []
+
+    if selected_section:
+        course_id, sec_id, semester, year = selected_section.split(",")
+        cursor.execute("""
+            SELECT st.ID, st.name, tk.grade
+            FROM takes tk
+            JOIN student st ON tk.ID = st.ID
+            WHERE tk.course_id = %s AND tk.sec_id = %s
+              AND tk.semester = %s AND tk.year = %s
+        """, (course_id, sec_id, semester, year))
+        students = cursor.fetchall()
+
+    if request.method == "POST" and request.form.get("update_grades"):
+        for student in students:
+            grade = request.form.get(f"grade_{student['ID']}")
+            cursor.execute("""
+                UPDATE takes
+                SET grade = %s
+                WHERE ID = %s AND course_id = %s AND sec_id = %s
+                  AND semester = %s AND year = %s
+            """, (grade, student['ID'], course_id, sec_id, semester, year))
+        db.commit()
+        return redirect("/instructor-portal/grades")
+
+    return render_template("instructor/grades.html",
+                           sections=sections,
+                           students=students,
+                           selected_section=selected_section)
+
+#Modify Prereqs
+@app.route("/instructor-portal/prereq", methods=["GET", "POST"])
+def view_prereq():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    instructor_id = session.get("linked_id")
+    cursor.execute("SELECT course_id, title FROM course WHERE dept_name IN (SELECT dept_name FROM instructor WHERE ID = %s)", (instructor_id,))
+    courses = cursor.fetchall()
+
+    selected_course = None
+    prereqs = []
+
+    course_id = request.args.get("course_id")
+    if request.method == "POST":
+        course_id = request.form.get("course_id")
+
+    if course_id:
+        selected_course = next((c for c in courses if c["course_id"] == course_id), None)
+        cursor.execute("SELECT prereq_id FROM prereq WHERE course_id = %s", (course_id,))
+        prereqs = cursor.fetchall()
+
+    cursor.execute("SELECT course_id, title FROM course")
+    all_courses = cursor.fetchall()
+
+    return render_template("instructor/prereq.html",
+                           courses=courses,
+                           selected_course=selected_course,
+                           prereqs=prereqs,
+                           all_courses=all_courses)
+@app.route("/instructor-portal/prereq/add", methods=["POST"])
+def add_prereq():
+    db = get_db()
+    cursor = db.cursor()
+
+    course_id = request.form["course_id"]
+    prereq_id = request.form["prereq_id"]
+
+    cursor.execute("INSERT INTO prereq (course_id, prereq_id) VALUES (%s, %s)", (course_id, prereq_id))
+    db.commit()
+
+    return redirect(f"/instructor-portal/prereq?course_id={course_id}")
+
+#remove prereq
+@app.route("/instructor-portal/prereq/remove", methods=["POST"])
+def remove_prereq():
+    db = get_db()
+    cursor = db.cursor()
+
+    course_id = request.form["course_id"]
+    prereq_id = request.form["prereq_id"]
+
+    cursor.execute("DELETE FROM prereq WHERE course_id = %s AND prereq_id = %s", (course_id, prereq_id))
+    db.commit()
+
+    return redirect(f"/instructor-portal/prereq?course_id={course_id}")
+
+# View sections and roster
+@app.route("/instructor-portal/section", methods=["GET", "POST"])
+def view_sections():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    instructor_id = session.get("linked_id")
+
+    semesters = ["Fall", "Winter", "Spring", "Summer"]
+    selected_semester = None
+    sections = []
+    selected_section = None
+    roster = []
+
+    if request.method == "POST" and "semester" in request.form:
+        selected_semester = request.form["semester"]
+        cursor.execute("""
+            SELECT course_id, sec_id, semester, year
+            FROM teaches
+            WHERE ID=%s AND semester=%s
+        """, (instructor_id, selected_semester))
+        sections = cursor.fetchall()
+
+    if request.method == "POST" and "section_id" in request.form:
+        vals = request.form["section_id"].split("|")
+        course_id, sec_id, semester, year = vals
+        selected_section = {
+            "course_id": course_id,
+            "sec_id": sec_id,
+            "semester": semester,
+            "year": int(year)
+        }
+
+        cursor.execute("""
+            SELECT s.ID, s.name
+            FROM student s
+            JOIN takes t ON s.ID = t.ID
+            WHERE t.course_id=%s AND t.sec_id=%s AND t.semester=%s AND t.year=%s
+        """, (course_id, sec_id, semester, year))
+        roster = cursor.fetchall()
+
+        selected_semester = semester
+        cursor.execute("""
+            SELECT course_id, sec_id, semester, year
+            FROM teaches
+            WHERE ID=%s AND semester=%s
+        """, (instructor_id, selected_semester))
+        sections = cursor.fetchall()
+
+    return render_template("instructor/section.html",
+                           semesters=semesters,
+                           selected_semester=selected_semester,
+                           sections=sections,
+                           selected_section=selected_section,
+                           roster=roster)
 
 ################### STUDENT
 
