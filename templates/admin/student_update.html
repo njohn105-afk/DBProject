@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+<h1>Update Student</h1>
+
+<form method="POST">
+
+    <label>ID:</label><br>
+    <input type="text" name="ID" value="{{ student.ID }}" class="form"><br><br>
+
+    <label>Name:</label><br>
+    <input type="text" name="name" value="{{ student.name }}" class="form"><br><br>
+
+    <label>Major (Department):</label><br>
+    <select name="dept_name" class="form">
+        {% for d in departments %}
+            <option value="{{ d.dept_name }}"
+                {% if d.dept_name == student.dept_name %}selected{% endif %}
+            >
+                {{ d.dept_name }}
+            </option>
+        {% endfor %}
+    </select><br><br>
+
+    <label>Total Credits:</label><br>
+    <input type="number" name="tot_cred" value="{{ student.tot_cred }}" class="form"><br><br>
+
+    <button type="submit" class="btn-green">Update Student</button>
+
+</form>
+
+<a href="/admin/student/list" class="btn">Back to Student List</a>
+
+</body>
+</html>

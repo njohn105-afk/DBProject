@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+<h1>Create a New Student</h1>
+
+<form method="POST">
+    <label>ID:</label><br>
+    <input type="text" name="ID" required class="form"><br><br>
+
+    <label>Name:</label><br>
+    <input type="text" name="name" required class="form"><br><br>
+
+    <label>Major (Department):</label><br>
+    <select name="dept_name" class="form">
+        {% for d in departments %}
+            <option value="{{ d.dept_name }}">{{ d.dept_name }}</option>
+        {% endfor %}
+    </select><br><br>
+
+    <label>Total Credits:</label><br>
+    <input type="number" name="tot_cred" value="0" class="form"><br><br>
+
+    <button type="submit" class="btn-green">Create Student</button>
+</form>
+
+<br>
+<a href="/admin/student" class="btn">Back to Student Management</a>
+
+</body>
+</html>
