@@ -37,7 +37,7 @@ def login():
         db = get_db()
         cursor = db.cursor(dictionary=True)
 
-        # Compare password using MySQL SHA2 hashing
+        # Query to find the associated user
         query = """
             SELECT username, role, linked_id
             FROM users
@@ -50,12 +50,12 @@ def login():
         if not user:
             return "Invalid username or password."
 
-        # Store session info
+        # Store session info for access later
         session["username"] = user["username"]
         session["role"] = user["role"]
         session["linked_id"] = user["linked_id"]
 
-        # Redirect based on role
+        # Redirect to portal based on role
         if user["role"] == "student":
             return redirect("/student-portal")
         elif user["role"] == "instructor":
@@ -85,8 +85,19 @@ def student_portal():
     if session.get("role") != "student":
         return redirect("/login")
     
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    
     STUDENT_ID = session["linked_id"]
-    return render_template("student/student_portal.html")
+
+    cursor.execute("""
+        SELECT ID, name, dept_name 
+        FROM student
+        WHERE ID = %s
+    """, (STUDENT_ID,))
+    student = cursor.fetchone()
+
+    return render_template("student/student_portal.html", student=student)
 
 
 # Check final grades
@@ -102,7 +113,7 @@ def grades():
     cursor.execute("SELECT * FROM takes WHERE ID = %s;", (STUDENT_ID,))
     rows = cursor.fetchall()
 
-    return "GRADES: \n" + str(rows)
+    return render_template("/student/grades.html", rows=rows)
 
 # Check courses based on semester 
 # TODO: if year and semester match the current then its status: active
@@ -199,7 +210,7 @@ def advisor():
 
     cursor.execute(query, (STUDENT_ID,))
     advisor_info = cursor.fetchone()
-    return str(advisor_info)
+    return render_template("student/advisor.html", advisor=advisor_info)
 
 # Registration portal
 @app.route("/student-portal/register")
@@ -251,7 +262,12 @@ def add():
     exists = cursor.fetchone()
 
     if exists:
-        return "Already registered for this course"
+        return render_template(
+            "message.html",
+            message="Error: Already registered for this course",
+            category="error",
+            redirect_url="/student-portal/register"
+        )
     
     insert_query = """
         INSERT INTO takes (ID, course_id, sec_id, semester, year)
@@ -260,7 +276,12 @@ def add():
     cursor.execute(insert_query, (STUDENT_ID, course_id, sec_id, semester, year))
     db.commit()
 
-    return "Registration successful!"
+    return render_template(
+            "message.html",
+            message="Registration success!",
+            category="error",
+            redirect_url="/student-portal/register"
+        )
 
 # Drop portal
 @app.route("/student-portal/drop")
@@ -281,8 +302,6 @@ def drop():
 
     cursor.execute(query, (STUDENT_ID,))
     active_courses = cursor.fetchall()
-
-    print(active_courses)
 
     return render_template("student/drop.html", courses=active_courses)
 
@@ -314,7 +333,12 @@ def remove():
     exists = cursor.fetchone()
 
     if not exists:
-        return "Not registered for this course!"
+        return render_template(
+            "message.html",
+            message="Error: Not registered for this course!",
+            category="error",
+            redirect_url="/student-portal/drop"
+        )
     
     delete_query = """
         DELETE FROM takes
@@ -327,7 +351,12 @@ def remove():
     cursor.execute(delete_query, (STUDENT_ID, course_id, sec_id, semester, year))
     db.commit()
 
-    return "Drop course success!"
+    return render_template(
+            "message.html",
+            message="Drop course success!",
+            category="error",
+            redirect_url="/student-portal/drop"
+        )
 
 
 # Allow update: Major (pick from list of choices)

@@ -1,0 +1,154 @@
+
+
+body {
+  margin: 50px;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background-color: #0f0f0f;
+  color: #f5f5f5;
+  line-height: 1.6;
+  font-size: 20px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 18px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background: #222;                
+    border: 2px solid #444;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+}
+
+.btn:hover {
+    background: #333;
+    border-color: #666;
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transition: transform 0.05s ease-in-out, background 0.2s, border 0.2s;
+    background: #111;
+}
+
+.btn-green {
+    display: inline-block;
+    padding: 10px 18px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+
+    background: #115522;           
+    border: 2px solid #1b7a38;     
+    border-radius: 6px;
+
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+}
+
+.btn-green:hover {
+    background: #15702c;   
+    border-color: #28a745; 
+    transform: translateY(-2px);
+}
+
+.btn-green:active {
+    transition: transform 0.05s ease-in-out, background 0.2s, border 0.2s;
+    background: #0d441c;
+    border-color: #1b7a38;
+    transform: translateY(2px);
+}
+
+.form {
+    padding: 10px 14px;
+    font-size: 16px;
+    color: #fff;
+
+    background: #1a1a1a;
+    border: 2px solid #333;
+    border-radius: 6px;
+
+    transition: all 0.25s ease;
+}
+
+.form:hover {
+    border-color: #555;
+}
+
+.menu {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 20px;
+    max-width: 700px;
+    margin-top: 30px;
+}
+
+.btn.logout {
+    background: #7a0f0f;
+    border-color: #b81d1d;
+}
+
+.btn.logout:hover {
+    background: #a51616;
+    border-color: #d63a3a;
+}
+
+.btn.logout:active {
+    background: #5c0b0b;
+}
+
+
+table {
+    width: 75%;
+    border-collapse: collapse;
+    background: #1a1a1a;
+    border: 3px solid #333;
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 16px;
+}
+
+tbody td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #2d2d2d;
+    color: #ddd;
+}
+
+tbody tr:nth-child(even) {
+    background: #181818;
+}
+/* Clickable links */
+table a {
+    color: #4ea3ff;
+    font-weight: 600;
+}
+
+
+
+select {
+    padding: 8px 12px;
+    font-size: 16px;
+    font-weight: 500;
+
+    color: #fff;
+    background: #1a1a1a;
+
+    border: 2px solid #333;
+    border-radius: 6px;
+
+    transition: all 0.2s ease-in-out;
+
+    outline: none; 
+}
+
+select:hover {
+    border-color: #555;
+    background: #202020;
+}
+
+option {
+    background: #1a1a1a;
+    color: #fff;
+}

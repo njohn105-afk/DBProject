@@ -2,21 +2,23 @@
 <html>
 <head>
     <title>Student Portal</title>
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
 
 <body>
 
     <h1>Student Portal</h1>
 
-    <p>Welcome! Choose an option below:</p>
+    <p>Welcome, {{student.name}}! Choose an option below:</p>
 
     <div class="menu">
-        <a class="menu-item" href="/student-portal/grades">View Grades</a>
-        <a class="menu-item" href="/student-portal/courses">View Courses</a>
-        <a class="menu-item" href="/student-portal/advisor">Advisor Information</a>
-        <a class="menu-item" href="/student-portal/register">Register for a Class</a>
-        <a class="menu-item" href="/student-portal/drop">Drop a Class</a>
-        <a class="menu-item" href="/student-portal/update-info">Update Personal Info</a>
+        <a class="btn" href="/student-portal/grades">View Grades</a>
+        <a class="btn" href="/student-portal/courses">View Courses</a>
+        <a class="btn" href="/student-portal/advisor">Advisor Information</a>
+        <a class="btn" href="/student-portal/register">Register for a Class</a>
+        <a class="btn" href="/student-portal/drop">Drop a Class</a>
+        <a class="btn" href="/student-portal/update-info">Update Personal Info</a>
+        <a class="btn logout" href="/logout">Logout</a>
     </div>
 
 </body>

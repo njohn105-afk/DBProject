@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Advisor Info</title>
+    <title>Your Advisor Info</title>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body>
-    <h1>Results for advisor info</h1>
+    <h1>Your Advisor Info</h1>
     <br>
 
     {% if advisor %}
     <table border="1" cellpadding="5">
         <tr>
-            <th>i_id</th>
+            <th>Advisor ID</th>
             <th>Name</th>
             <th>Department</th>
         </tr>
 
-        {% for row in advisor %}
         <tr>
-            <td>{{ row.ID }}</td>
+            <td>{{ advisor.ID }}</td>
+            <td>{{ advisor.name }}</td>
+            <td>{{ advisor.dept_name }}</td>
         </tr>
-        {% endfor %}
     </table>
     {% else %}
-        <p>No section data found</p>
+        <p>No advisor data found.</p>
     {% endif %}
 
     <br>
+    <a href="/student-portal" class="btn">Back to Student Portal</a>
 
 </body>
 </html>

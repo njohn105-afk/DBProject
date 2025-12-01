@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Grades</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+
+<body>
+
+    <h1>Your Grades</h1>
+
+    {% if rows %}
+        <table border="1" cellpadding="4" cellspacing="0">
+            <tr>
+                <th>Course ID</th>
+                <th>Section</th>
+                <th>Semester</th>
+                <th>Year</th>
+                <th>Grade</th>
+            </tr>
+
+            {% for r in rows %}
+            <tr>
+                <td>{{ r.course_id }}</td>
+                <td>{{ r.sec_id }}</td>
+                <td>{{ r.semester }}</td>
+                <td>{{ r.year }}</td>
+                <td>{{ r.grade }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No grades available.</p>
+    {% endif %}
+
+    <br>
+    <a href="/student-portal" class="btn">Back to Student Portal</a>
+
+</body>
+</html>

@@ -2,9 +2,10 @@
 <html>
 <head>
     <title>Student Schedule</title>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body>
-    <h1>Schedule for Student {{ student_id }}</h1>
+    <h1>Your Courses</h1>
 
     <!-- Year Filter Form -->
     <form method="POST">
@@ -57,6 +58,7 @@
     {% endif %}
 
     <br>
+    <a href="/student-portal" class="btn">Back to Student Portal</a>
 
 </body>
 </html>

@@ -2,10 +2,11 @@
 <html>
 <head>
     <title>Drop</title>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 
 <body>
-    <h1>Drop</h1>
+    <h1>Drop Classes</h1>
     <br>
 
     {% if courses %}
@@ -15,9 +16,7 @@
             <th>Section #</th>
             <th>Semester</th>
             <th>Year</th>
-            <th>Building</th>
-            <th>room_number</th>
-            <th>time_slot_id</th>
+            <th>Drop</th>
         </tr>
 
         {% for row in courses %}
@@ -26,9 +25,6 @@
             <td>{{ row.sec_id }}</td>
             <td>{{ row.semester }}</td>
             <td>{{ row.year }}</td>
-            <td>{{ row.building }}</td>
-            <td>{{ row.room_number }}</td>
-            <td>{{ row.time_slot_id }}</td>
             <td>
                 <a href="/student-portal/drop/remove?course_id={{ row.course_id }}&sec_id={{ row.sec_id }}&semester={{ row.semester }}&year={{ row.year }}">
                     Drop
@@ -42,6 +38,7 @@
     {% endif %}
 
     <br>
+    <a href="/student-portal" class="btn">Back to Student Portal</a>
 
 </body>
 

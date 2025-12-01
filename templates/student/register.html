@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Register</title>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 
 <body>
@@ -16,8 +17,9 @@
             <th>Semester</th>
             <th>Year</th>
             <th>Building</th>
-            <th>room_number</th>
-            <th>time_slot_id</th>
+            <th>Room #</th>
+            <th>Time Slot ID</th>
+            <th>Register</th>
         </tr>
 
         {% for row in courses %}
@@ -42,6 +44,7 @@
     {% endif %}
 
     <br>
+    <a href="/student-portal" class="btn">Back to Student Portal</a>
 
 </body>
 

@@ -2,9 +2,10 @@
 <html>
 <head>
     <title>Student Schedule</title>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body>
-    <h1>Results for section info {{ sec_id }}</h1>
+    <h1>Results for Section #{{ sec_id }}</h1>
     <br>
 
     {% if section_info %}
@@ -15,8 +16,8 @@
             <th>Semester</th>
             <th>Year</th>
             <th>Building</th>
-            <th>room_number</th>
-            <th>time_slot_id</th>
+            <th>Room #</th>
+            <th>Time Slot ID</th>
         </tr>
 
         {% for row in section_info %}
@@ -36,6 +37,7 @@
     {% endif %}
 
     <br>
+    <a href="/student-portal/courses" class="btn">Back to Courses</a>
 
 </body>
 </html>

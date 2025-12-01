@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Update Info</title>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body>
 
@@ -10,7 +11,7 @@
     <form method="POST">
 
         <label>Name:</label><br>
-        <input type="text" name="name" value="{{ student.name }}" required>
+        <input type="text" name="name" value="{{ student.name }}" class="form" required>
         <br><br>
 
         <label>Major (Department):</label><br>
@@ -25,11 +26,11 @@
         </select>
         <br><br>
 
-        <button type="submit">Save Changes</button>
+        <button type="submit" class="btn-green">Save Changes</button>
     </form>
 
     <br>
-    <a href="/student-portal">Back to Student Portal</a>
+    <a href="/student-portal" class="btn">Back to Student Portal</a>
 
 </body>
 </html>
