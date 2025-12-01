@@ -1,8 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+
+<body>
 <h1>Edit Course: {{ course.course_id }}</h1>
 
 <form method="POST">
     Title:
-    <input type="text" name="title" value="{{ course.title }}"><br><br>
+    <input type="text" name="title" value="{{ course.title }}" class="form"><br><br>
 
     Department:
     <select name="dept_name">
@@ -17,7 +26,9 @@
     <br><br>
 
     Credits:
-    <input type="number" name="credits" value="{{ course.credits }}"><br><br>
+    <input type="number" name="credits" value="{{ course.credits }}" class="form"><br><br>
 
-    <button type="submit">Update Course</button>
+    <button type="submit" class="btn-green">Update Course</button>
 </form>
+<a href="/admin/course" class="btn">Back to Course Management</a>
+</body>

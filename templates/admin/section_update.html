@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Update Section</title>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 
@@ -10,28 +11,28 @@
     <form method="POST">
 
         <label>Course ID:</label><br>
-        <input type="text" name="course_id" value="{{ section.course_id }}"><br><br>
+        <input type="text" name="course_id" value="{{ section.course_id }}" class="form"><br><br>
 
         <label>Section #:</label><br>
-        <input type="text" name="sec_id" value="{{ section.sec_id }}"><br><br>
+        <input type="text" name="sec_id" value="{{ section.sec_id }}"class="form"><br><br>
 
         <label>Semester:</label><br>
-        <input type="text" name="semester" value="{{ section.semester }}"><br><br>
+        <input type="text" name="semester" value="{{ section.semester }}"class="form"><br><br>
 
         <label>Year:</label><br>
-        <input type="text" name="year" value="{{ section.year }}"><br><br>
+        <input type="text" name="year" value="{{ section.year }}"class="form"><br><br>
 
         <label>Building:</label><br>
-        <input type="text" name="building" value="{{ section.building }}"><br><br>
+        <input type="text" name="building" value="{{ section.building }}"class="form"><br><br>
 
         <label>Room Number:</label><br>
-        <input type="text" name="room_number" value="{{ section.room_number }}"><br><br>
+        <input type="text" name="room_number" value="{{ section.room_number }}"class="form"><br><br>
 
         <label>Time Slot ID:</label><br>
-        <input type="text" name="time_slot_id" value="{{ section.time_slot_id }}"><br><br>
+        <input type="text" name="time_slot_id" value="{{ section.time_slot_id }}"class="form"><br><br>
 
-        <button type="submit">Update Section</button>
+        <button type="submit" class="btn-green">Update Section</button>
     </form>
-
+    <a href="/admin/section/list" class="btn">Back to Section List</a>
 </body>
 </html>

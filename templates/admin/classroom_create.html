@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Classroom</title>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
+
+
 <body>
 
     <h1>Create a New Classroom</h1>
@@ -10,20 +13,20 @@
     <form method="POST">
 
         <label>Building:</label><br>
-        <input type="text" name="building" required><br><br>
+        <input type="text" name="building" required class="form"><br><br>
 
         <label>Room Number:</label><br>
-        <input type="text" name="room_number" required><br><br>
+        <input type="text" name="room_number" required class="form"><br><br>
 
         <label>Capacity:</label><br>
-        <input type="text" name="capacity" required><br><br>
+        <input type="text" name="capacity" required class="form"><br><br>
 
-        <button type="submit">Create Classroom</button>
+        <button type="submit" class="btn-green">Create Classroom</button>
 
     </form>
 
     <br>
-    <a href="/admin">Back to Admin Portal</a>
+    <a href="/admin/classroom" class="btn">Back to Classroom Management</a>
 
 </body>
 </html>

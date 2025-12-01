@@ -23,6 +23,7 @@ CURRENT_SEMESTER = "Spring"
 #  Add the necessary checks/redirects for student/instructor/admin mode
 #  More checks to prevent incomplete/error queries (deleting department with instructors in it)
 #  Basic css styling for all templates
+#  Fix redirects on message.html renders
 
 # Login setup instructions
 # 
@@ -68,7 +69,7 @@ def login():
         elif user["role"] == "instructor":
             return redirect("/instructor-portal")
         elif user["role"] == "admin":
-            return redirect("/admin/course")
+            return redirect("/admin-portal")
 
     return render_template("login.html")
 
@@ -123,7 +124,6 @@ def grades():
     return render_template("/student/grades.html", rows=rows)
 
 # Check courses based on semester 
-# TODO: if year and semester match the current then its status: active
 @app.route("/student-portal/courses", methods=["GET", "POST"])
 def courses():
     selected_semester = request.form.get("semester")
@@ -420,15 +420,28 @@ def update_info():
 
 ################### ADMIN
 
+@app.route("/admin-portal")
+def admin_portal():
+    if session.get("role") != "admin":
+        return redirect("/login")
+
+    return render_template("admin/admin_portal.html")
+
+
+
 # --------- Course CRUD
 
 @app.route("/admin/course")
 def admin_course_home():
+    if session.get("role") != "admin":
+        return redirect("/login")
     return render_template("admin/course_home.html")
 
 
 @app.route("/admin/course/list")
 def admin_course_list():
+    if session.get("role") != "admin":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -440,6 +453,8 @@ def admin_course_list():
 
 @app.route("/admin/course/create", methods=["GET", "POST"])
 def admin_course_create():
+    if session.get("role") != "admin":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -466,6 +481,8 @@ def admin_course_create():
 
 @app.route("/admin/course/update", methods=["GET", "POST"])
 def admin_course_update():
+    if session.get("role") != "admin":
+        return redirect("/login")
     course_id = request.args.get("id")
     db = get_db()
     cursor = db.cursor(dictionary=True)
@@ -474,7 +491,12 @@ def admin_course_update():
     course = cursor.fetchone()
 
     if not course:
-        return "Course not found."
+        return render_template(
+            "message.html",
+            message="Error: Course not found",
+            category="error",
+            redirect_url="/student-portal/register"
+        )
 
     if request.method == "POST":
         title = request.form["title"]
@@ -489,7 +511,12 @@ def admin_course_update():
         cursor.execute(query, (title, dept_name, credits, course_id))
         db.commit()
 
-        return "Course updated successfully!"
+        return render_template(
+            "message.html",
+            message="Course updated successfully!",
+            category="error",
+            redirect_url="/student-portal/register"
+        )
 
     cursor.execute("SELECT dept_name FROM department ORDER BY dept_name;")
     departments = cursor.fetchall()
@@ -499,6 +526,8 @@ def admin_course_update():
 
 @app.route("/admin/course/delete")
 def admin_course_delete():
+    if session.get("role") != "admin":
+        return redirect("/login")
     course_id = request.args.get("id")
     db = get_db()
     cursor = db.cursor()
@@ -506,16 +535,25 @@ def admin_course_delete():
     cursor.execute("DELETE FROM course WHERE course_id = %s", (course_id,))
     db.commit()
 
-    return "Course deleted."
+    return render_template(
+            "message.html",
+            message="Error: Course deleted",
+            category="error",
+            redirect_url="/student-portal/register"
+        )
 
 # --------- Section CRUD
 
 @app.route("/admin/section")
 def admin_section_home():
+    if session.get("role") != "admin":
+        return redirect("/login")
     return render_template("admin/section_home.html")
 
 @app.route("/admin/section/list")
 def admin_section_list():
+    if session.get("role") != "admin":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -526,6 +564,8 @@ def admin_section_list():
 
 @app.route("/admin/section/create", methods=["GET", "POST"])
 def admin_section_create():
+    if session.get("role") != "admin":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -552,6 +592,8 @@ def admin_section_create():
 
 @app.route("/admin/section/update", methods=["GET", "POST"])
 def admin_section_update():
+    if session.get("role") != "admin":
+        return redirect("/login")
     course_id = request.args.get("course_id")
     sec_id = request.args.get("sec_id")
     semester = request.args.get("semester")
@@ -569,7 +611,12 @@ def admin_section_update():
     cursor.execute(select_query, (course_id, sec_id, semester, year))
     section = cursor.fetchone()
     if not section:
-        return "Section not found."
+        return render_template(
+            "message.html",
+            message="Error: Section not found.",
+            category="error",
+            redirect_url="/student-portal/register"
+        )
 
     if request.method == "POST":
         new_course_id    = request.form["course_id"]
@@ -602,12 +649,19 @@ def admin_section_update():
         ))
         db.commit()
 
-        return "Section updated successfully!"
+        return render_template(
+            "message.html",
+            message="Section updated successfully.",
+            category="error",
+            redirect_url="/admin/section"
+        )
 
     return render_template("admin/section_update.html", section=section)
 
 @app.route("/admin/section/delete")
 def admin_section_delete():
+    if session.get("role") != "admin":
+        return redirect("/login")
     course_id = request.args.get("course_id")
     sec_id = request.args.get("sec_id")
     semester = request.args.get("semester")
@@ -624,17 +678,26 @@ def admin_section_delete():
     cursor.execute(delete_query, (course_id, sec_id, semester, year))
     db.commit()
 
-    return "Section deleted."
+    return render_template(
+            "message.html",
+            message="Section deleted successfully.",
+            category="error",
+            redirect_url="/admin/section"
+        )
 
 
 # --------- Classroom CRUD
 
 @app.route("/admin/classroom")
 def admin_classroom_home():
+    if session.get("role") != "admin":
+        return redirect("/login")
     return render_template("admin/classroom_home.html")
 
 @app.route("/admin/classroom/list")
 def admin_classroom_list():
+    if session.get("role") != "admin":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -645,6 +708,8 @@ def admin_classroom_list():
 
 @app.route("/admin/classroom/create", methods=["GET", "POST"])
 def admin_classroom_create():
+    if session.get("role") != "admin":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -667,6 +732,8 @@ def admin_classroom_create():
 
 @app.route("/admin/classroom/update", methods=["GET", "POST"])
 def admin_classroom_update():
+    if session.get("role") != "admin":
+        return redirect("/login")
     building = request.args.get("building")
     room_number = request.args.get("room_number")
 
@@ -708,6 +775,8 @@ def admin_classroom_update():
 
 @app.route("/admin/classroom/delete")
 def admin_classroom_delete():
+    if session.get("role") != "admin":
+        return redirect("/login")
     building = request.args.get("building")
     room_number = request.args.get("room_number")
     db = get_db()
@@ -720,17 +789,26 @@ def admin_classroom_delete():
     cursor.execute(delete_query, (building, room_number))
     db.commit()
 
-    return "Classroom deleted."
+    return render_template(
+            "message.html",
+            message="Classroom deleted successfully.",
+            category="error",
+            redirect_url="/admin/classroom"
+        )
 
 
 # --------- Department CRUD
 
 @app.route("/admin/department")
 def admin_department_home():
+    if session.get("role") != "admin":
+        return redirect("/login")
     return render_template("admin/department_home.html")
 
 @app.route("/admin/department/list")
 def admin_department_list():
+    if session.get("role") != "admin":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -741,6 +819,8 @@ def admin_department_list():
 
 @app.route("/admin/department/create", methods=["GET", "POST"])
 def admin_department_create():
+    if session.get("role") != "admin":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -756,13 +836,20 @@ def admin_department_create():
         cursor.execute(query, (dept_name, building, budget))
         db.commit()
 
-        return "Department created successfully!"
+        return render_template(
+            "message.html",
+            message="Department created successfully.",
+            category="error",
+            redirect_url="/admin/department"
+        )
 
 
     return render_template("admin/department_create.html")
 
 @app.route("/admin/department/update", methods=["GET", "POST"])
 def admin_department_update():
+    if session.get("role") != "admin":
+        return redirect("/login")
     dept_name = request.args.get("dept_name")
 
     db = get_db()
@@ -775,7 +862,12 @@ def admin_department_update():
     cursor.execute(select_query, (dept_name,))
     department = cursor.fetchone()
     if not department:
-        return "Department not found."
+        return render_template(
+            "message.html",
+            message="Error: Department not found.",
+            category="error",
+            redirect_url="/admin/department"
+        )
 
     if request.method == "POST":
         new_dept_name    = request.form["dept_name"]
@@ -795,12 +887,19 @@ def admin_department_update():
         ))
         db.commit()
 
-        return "Department updated successfully!"
+        return render_template(
+            "message.html",
+            message="Department updated successfully.",
+            category="error",
+            redirect_url="/admin/department"
+        )
 
     return render_template("admin/department_update.html", department=department)
 
 @app.route("/admin/department/delete")
 def admin_department_delete():
+    if session.get("role") != "admin":
+        return redirect("/login")
     dept_name = request.args.get("dept_name")
     db = get_db()
     cursor = db.cursor()
@@ -811,16 +910,25 @@ def admin_department_delete():
     cursor.execute(delete_query, (dept_name,))
     db.commit()
 
-    return "Department deleted."
+    return render_template(
+            "message.html",
+            message="Department deleted successfully.",
+            category="error",
+            redirect_url="/admin/department"
+        )
 
 # --------- Time Slot CRUD
 
 @app.route("/admin/time_slot")
 def admin_time_slot_home():
+    if session.get("role") != "admin":
+        return redirect("/login")
     return render_template("admin/time_slot_home.html")
 
 @app.route("/admin/time_slot/list")
 def admin_time_slot_list():
+    if session.get("role") != "admin":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -831,6 +939,8 @@ def admin_time_slot_list():
 
 @app.route("/admin/time_slot/create", methods=["GET", "POST"])
 def admin_time_slot_create():
+    if session.get("role") != "admin":
+        return redirect("/login")
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -849,7 +959,12 @@ def admin_time_slot_create():
         cursor.execute(query, (time_slot_id, day, start_hr, start_min, end_hr, end_min))
         db.commit()
 
-        return "Time Slot created successfully!"
+        return render_template(
+            "message.html",
+            message="Time Slot created successfully.",
+            category="error",
+            redirect_url="/admin/time_slot"
+        )
 
 
     return render_template("admin/time_slot_create.html")
@@ -857,6 +972,8 @@ def admin_time_slot_create():
 
 @app.route("/admin/time_slot/update", methods=["GET", "POST"])
 def admin_time_slot_update():
+    if session.get("role") != "admin":
+        return redirect("/login")
     time_slot_id = request.args.get("time_slot_id")
 
     db = get_db()
@@ -869,7 +986,12 @@ def admin_time_slot_update():
     cursor.execute(select_query, (time_slot_id,))
     time_slot = cursor.fetchone()
     if not time_slot:
-        return "Time Slot not found."
+        return render_template(
+            "message.html",
+            message="Time Slot not found.",
+            category="error",
+            redirect_url="/admin/time_slot"
+        )
 
     if request.method == "POST":
         new_time_slot_id    = request.form["time_slot_id"]
@@ -895,12 +1017,19 @@ def admin_time_slot_update():
         ))
         db.commit()
 
-        return "Time Slot updated successfully!"
+        return render_template(
+            "message.html",
+            message="Time Slot updated successfully.",
+            category="error",
+            redirect_url="/admin/time_slot"
+        )
 
     return render_template("admin/time_slot_update.html", time_slot=time_slot)
 
 @app.route("/admin/time_slot/delete")
 def admin_time_slot_delete():
+    if session.get("role") != "admin":
+        return redirect("/login")
     time_slot_id = request.args.get("time_slot_id")
     db = get_db()
     cursor = db.cursor()
@@ -911,7 +1040,12 @@ def admin_time_slot_delete():
     cursor.execute(delete_query, (time_slot_id,))
     db.commit()
 
-    return "Time Slot deleted."
+    return render_template(
+            "message.html",
+            message="Time Slot deleted successfully.",
+            category="error",
+            redirect_url="/admin/time_slot"
+        )
 
 
 # --------- Instructor CRUD

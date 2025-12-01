@@ -1,13 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+
+<body>
 <h1>All Time Slots</h1>
 
 <table border="1" cellpadding="5">
     <tr>
-        <th>time_slot_id</th>
+        <th>Time Slot ID</th>
         <th>day</th>
-        <th>start_hr</th>
-        <th>start_min</th>
-        <th>end_hr</th>
-        <th>end_min</th>
+        <th>Start Hr</th>
+        <th>Start Min</th>
+        <th>End Hr</th>
+        <th>End Min</th>
     </tr>
 
     {% for t in time_slots %}
@@ -25,3 +34,6 @@
     </tr>
     {% endfor %}
 </table>
+<a href="/admin/time_slot" class="btn">Back to Time Slot Management</a>
+</body>
+</html>

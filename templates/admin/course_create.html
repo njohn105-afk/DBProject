@@ -1,18 +1,28 @@
-<h1>Create Course</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
 
-<form method="POST">
-    Course ID: <input type="text" name="course_id"><br><br>
-    Title: <input type="text" name="title"><br><br>
+<body>
+    <h1>Create Course</h1>
 
-    Department:
-    <select name="dept_name">
-        {% for d in departments %}
-            <option value="{{ d.dept_name }}">{{ d.dept_name }}</option>
-        {% endfor %}
-    </select>
-    <br><br>
+    <form method="POST">
+        Course ID: <input type="text" name="course_id" class="form"><br><br>
+        Title: <input type="text" name="title" class="form"><br><br>
 
-    Credits: <input type="number" name="credits"><br><br>
+        Department:
+        <select name="dept_name">
+            {% for d in departments %}
+                <option value="{{ d.dept_name }}">{{ d.dept_name }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
 
-    <button type="submit">Create Course</button>
-</form>
+        Credits: <input type="number" name="credits" class="form"><br><br>
+
+        <button type="submit" class="btn-green">Create Course</button>
+    </form>
+    <a href="/admin/course" class="btn">Back to Course Management</a>
+</body>

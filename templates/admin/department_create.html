@@ -1,29 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Classroom</title>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
+
+
 <body>
 
-    <h1>Create a New Classroom</h1>
+    <h1>Create a New Department</h1>
 
     <form method="POST">
 
         <label>Department Name:</label><br>
-        <input type="text" name="dept_name" required><br><br>
+        <input type="text" name="dept_name" required class="form"><br><br>
 
         <label>Building:</label><br>
-        <input type="text" name="building" required><br><br>
+        <input type="text" name="building" required class="form"><br><br>
 
         <label>Budget:</label><br>
-        <input type="text" name="budget" required><br><br>
+        <input type="text" name="budget" required class="form"><br><br>
 
-        <button type="submit">Create Department</button>
+        <button type="submit" class="btn-green">Create Department</button>
 
     </form>
 
     <br>
-    <a href="/admin">Back to Admin Portal</a>
+    <a href="/admin/department" class="btn">Back to Department Management</a>
 
 </body>
 </html>

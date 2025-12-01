@@ -1,24 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
 <h1>All Courses</h1>
 
-<table border="1" cellpadding="5">
-    <tr>
-        <th>Course ID</th>
-        <th>Title</th>
-        <th>Department</th>
-        <th>Credits</th>
-        <th>Actions</th>
-    </tr>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Course ID</th>
+            <th>Title</th>
+            <th>Department</th>
+            <th>Credits</th>
+            <th>Actions</th>
+        </tr>
 
-    {% for c in courses %}
-    <tr>
-        <td>{{ c.course_id }}</td>
-        <td>{{ c.title }}</td>
-        <td>{{ c.dept_name }}</td>
-        <td>{{ c.credits }}</td>
-        <td>
-            <a href="/admin/course/update?id={{ c.course_id }}">Edit</a> |
-            <a href="/admin/course/delete?id={{ c.course_id }}">Delete</a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+        {% for c in courses %}
+        <tr>
+            <td>{{ c.course_id }}</td>
+            <td>{{ c.title }}</td>
+            <td>{{ c.dept_name }}</td>
+            <td>{{ c.credits }}</td>
+            <td>
+                <a href="/admin/course/update?id={{ c.course_id }}">Edit</a> |
+                <a href="/admin/course/delete?id={{ c.course_id }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/admin/course" class="btn">Back to Course Management</a>
+
+</body>
+
+</html>

@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Update Time Slot</title>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
+
+
 <body>
 
     <h1>Update Time Slot</h1>
@@ -10,25 +13,26 @@
     <form method="POST">
 
         <label>Time Slot ID:</label><br>
-        <input type="text" name="time_slot_id" value="{{ time_slot.time_slot_id }}"><br><br>
+        <input type="text" name="time_slot_id" value="{{ time_slot.time_slot_id }}" class="form"><br><br>
 
         <label>Day:</label><br>
-        <input type="text" name="day" value="{{ time_slot.day }}"><br><br>
+        <input type="text" name="day" value="{{ time_slot.day }}"class="form"><br><br>
 
         <label>Start hr:</label><br>
-        <input type="text" name="start_hr" value="{{ time_slot.start_hr }}"><br><br>
+        <input type="text" name="start_hr" value="{{ time_slot.start_hr }}"class="form"><br><br>
 
         <label>Start min:</label><br>
-        <input type="text" name="start_min" value="{{ time_slot.start_min }}"><br><br>
+        <input type="text" name="start_min" value="{{ time_slot.start_min }}"class="form"><br><br>
 
         <label>End hr:</label><br>
-        <input type="text" name="end_hr" value="{{ time_slot.end_hr }}"><br><br>
+        <input type="text" name="end_hr" value="{{ time_slot.end_hr }}"class="form"><br><br>
 
         <label>End min:</label><br>
-        <input type="text" name="end_min" value="{{ time_slot.end_min }}"><br><br>
+        <input type="text" name="end_min" value="{{ time_slot.end_min }}"class="form"><br><br>
 
-        <button type="submit">Update Time Slot</button>
+        <button type="submit" class="btn-green">Update Time Slot</button>
     </form>
+    <a href="/admin/time_slot/list" class="btn">Back to Time Slot List</a>
 
 </body>
 </html>

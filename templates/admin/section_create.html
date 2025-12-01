@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Section</title>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
+
+
 <body>
 
     <h1>Create a New Section</h1>
@@ -10,32 +13,32 @@
     <form method="POST">
 
         <label>Course ID:</label><br>
-        <input type="text" name="course_id" required><br><br>
+        <input type="text" name="course_id" required class="form"><br><br>
 
         <label>Section Number (sec_id):</label><br>
-        <input type="text" name="sec_id" required><br><br>
+        <input type="text" name="sec_id" required class="form"><br><br>
 
         <label>Semester:</label><br>
-        <input type="text" name="semester" placeholder="Fall / Spring / Summer" required><br><br>
+        <input type="text" name="semester" placeholder="Fall / Spring / Summer" required class="form"><br><br>
 
         <label>Year:</label><br>
-        <input type="number" name="year" required><br><br>
+        <input type="number" name="year" required class="form"><br><br>
 
         <label>Building:</label><br>
-        <input type="text" name="building" required><br><br>
+        <input type="text" name="building" required class="form"><br><br>
 
         <label>Room Number:</label><br>
-        <input type="text" name="room_number" required><br><br>
+        <input type="text" name="room_number" required class="form"><br><br>
 
         <label>Time Slot ID:</label><br>
-        <input type="text" name="time_slot_id" required><br><br>
+        <input type="text" name="time_slot_id" required class="form"><br><br>
 
-        <button type="submit">Create Section</button>
+        <button type="submit" class="btn-green">Create Section</button>
 
     </form>
 
     <br>
-    <a href="/admin">Back to Admin Portal</a>
+    <a href="/admin/section" class="btn">Back to Section Management</a>
 
 </body>
 </html>

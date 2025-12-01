@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Update Classroom</title>
+    <title>Admin Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
+
 <body>
 
     <h1>Update Classroom</h1>
@@ -10,16 +12,17 @@
     <form method="POST">
 
         <label>Building:</label><br>
-        <input type="text" name="building" value="{{ classroom.building }}"><br><br>
+        <input type="text" name="building" value="{{ classroom.building }}" class="form"><br><br>
 
         <label>Room Number:</label><br>
-        <input type="text" name="room_number" value="{{ classroom.room_number }}"><br><br>
+        <input type="text" name="room_number" value="{{ classroom.room_number }}"class="form"><br><br>
 
         <label>Capacity:</label><br>
-        <input type="text" name="capacity" value="{{ classroom.capacity }}"><br><br>
+        <input type="text" name="capacity" value="{{ classroom.capacity }}"class="form"><br><br>
 
-        <button type="submit">Update Classroom</button>
+        <button type="submit" class="btn-green">Update Classroom</button>
     </form>
+    <a href="/admin/classroom/list" class="btn">Back to Classroom List</a>
 
 </body>
 </html>
