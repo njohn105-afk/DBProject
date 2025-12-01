@@ -14,7 +14,9 @@ def get_db():
 
 # vars
 
-#CURRENT_YEAR = 2022
+CURRENT_YEAR = 2022
+CURRENT_SEMESTER = "Spring"
+
 #ADMIN_MODE = True
 
 # TODO:
@@ -48,7 +50,12 @@ def login():
         user = cursor.fetchone()
 
         if not user:
-            return "Invalid username or password."
+            return render_template(
+                "message.html",
+                message="Error: Invalid username or password",
+                category="error",
+                redirect_url="/login"
+            )
 
         # Store session info for access later
         session["username"] = user["username"]
@@ -76,7 +83,7 @@ def logout():
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return redirect("/login");
 
 # Main student access area (dashboard)
 # Displays links to all functions (register class, drop class, etc)
@@ -142,6 +149,12 @@ def courses():
 
     cursor.execute(query, params)
     semester_rows = cursor.fetchall()
+
+    for row in semester_rows:
+        if row["year"] == CURRENT_YEAR and row["semester"] == CURRENT_SEMESTER:
+            row["status"] = "Active"
+        else:
+            row["status"] = "Completed"
 
     cursor.execute("""
         SELECT DISTINCT semester

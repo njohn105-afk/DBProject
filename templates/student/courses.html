@@ -36,6 +36,7 @@
             <th>Semester</th>
             <th>Year</th>
             <th>Grade</th>
+            <th>Status</th>
         </tr>
 
         {% for row in semester_rows %}
@@ -50,6 +51,7 @@
             <td>{{ row.semester }}</td>
             <td>{{ row.year }}</td>
             <td>{{ row.grade }}</td>
+            <td>{{ row.status }}</td>
         </tr>
         {% endfor %}
     </table>
