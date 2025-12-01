@@ -30,7 +30,7 @@
     {% if semester_rows %}
     <table border="1" cellpadding="5">
         <tr>
-            <th>ID</th>
+            <th>Course Title</th>
             <th>Course ID</th>
             <th>Section #</th>
             <th>Semester</th>
@@ -41,7 +41,7 @@
 
         {% for row in semester_rows %}
         <tr>
-            <td>{{ row.ID }}</td>
+            <td>{{ row.title }}</td>
             <td>{{ row.course_id }}</td>
             <td>
                 <a href="/student-portal/section?course_id={{ row.course_id }}&sec_id={{ row.sec_id }}&semester={{ row.semester }}&year={{ row.year }}">

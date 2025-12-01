@@ -17,10 +17,16 @@ def get_db():
 CURRENT_YEAR = 2022
 CURRENT_SEMESTER = "Spring"
 
+SEMESTER_ORDER = {
+    "Winter": 1,
+    "Spring": 2,
+    "Summer": 3,
+    "Fall": 4
+}
+
 
 # TODO:
 #  More checks to prevent incomplete/error queries (deleting department with instructors in it)
-#  Fix redirects on message.html renders
 
 # Login setup instructions
 # Create users table
@@ -438,9 +444,11 @@ def courses():
     STUDENT_ID = session["linked_id"]
 
     query = """
-        SELECT s.ID, s.name, t.course_id, t.semester, t.year, t.sec_id, t.grade
+        SELECT s.ID, s.name, t.course_id, c.title, 
+            t.semester, t.year, t.sec_id, t.grade
         FROM student s
         JOIN takes t ON s.ID = t.ID
+        JOIN course c ON t.course_id = c.course_id
         WHERE s.ID = %s
     """
 
@@ -454,8 +462,14 @@ def courses():
     semester_rows = cursor.fetchall()
 
     for row in semester_rows:
-        if row["year"] == CURRENT_YEAR and row["semester"] == CURRENT_SEMESTER:
+        course_year = row["year"]
+        course_sem = row["semester"]
+
+        if course_year == CURRENT_YEAR and course_sem == CURRENT_SEMESTER:
             row["status"] = "Active"
+
+        elif course_year > CURRENT_YEAR or (course_year == CURRENT_YEAR and SEMESTER_ORDER[course_sem] > SEMESTER_ORDER[CURRENT_SEMESTER]):
+            row["status"] = "Upcoming"
         else:
             row["status"] = "Completed"
 
@@ -465,6 +479,7 @@ def courses():
         WHERE ID = %s
     """, (STUDENT_ID,))
     semesters = cursor.fetchall()
+
 
     return render_template(
         "/student/courses.html",
@@ -535,9 +550,6 @@ def register():
     cursor = db.cursor(dictionary=True)
     if session.get("role") != "student":
         return redirect("/login")
-    # List classes
-    # Must join with instructor,
-    # Building
 
     query = """
         SELECT * FROM section WHERE semester = 'Spring' and year = 2022
@@ -546,7 +558,6 @@ def register():
     cursor.execute(query)
     courses = cursor.fetchall()
 
-    # Add button
     return render_template("student/register.html", 
                            courses=courses)
 
