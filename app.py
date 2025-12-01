@@ -17,16 +17,15 @@ def get_db():
 CURRENT_YEAR = 2022
 CURRENT_SEMESTER = "Spring"
 
-#ADMIN_MODE = True
 
 # TODO:
-#  Add the necessary checks/redirects for student/instructor/admin mode
 #  More checks to prevent incomplete/error queries (deleting department with instructors in it)
-#  Basic css styling for all templates
 #  Fix redirects on message.html renders
 
 # Login setup instructions
-# 
+# Create users table
+# Insert a few users with either role 'student' 'admin' or 'instructor' and password
+
 
 
 ################### LOGIN
@@ -105,7 +104,7 @@ def student_portal():
     """, (STUDENT_ID,))
     student = cursor.fetchone()
 
-    return render_template("student/student_portal.html", student=student)
+    return render_template("student/student_portal.html", student=student, year = CURRENT_YEAR, semester = CURRENT_SEMESTER)
 
 
 # Check final grades
