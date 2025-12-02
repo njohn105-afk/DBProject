@@ -484,6 +484,65 @@ def class_averages():
                            results=results)
 
 
+@app.route("/instructor/best-worst-class", methods=["GET", "POST"])
+def best_worst_class():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+
+    results = []
+    if request.method == "POST":
+        semester = request.form.get("semester")
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT course_id, AVG(grade) AS avg_grade
+            FROM takes
+            WHERE semester = %s
+            GROUP BY course_id
+            ORDER BY avg_grade DESC
+        """, (semester,))
+        results = cursor.fetchall()
+
+    return render_template("instructor/best_worst_class.html", results=results)
+
+@app.route("/instructor/total-students")
+def total_students():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT s.dept_name, COUNT(DISTINCT s.ID) AS total_students
+        FROM student s
+        GROUP BY s.dept_name
+    """)
+    results = cursor.fetchall()
+    return render_template("instructor/total_students.html", results=results)
+
+@app.route("/instructor/current-students", methods=["GET", "POST"])
+def current_students():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+
+    results = []
+    if request.method == "POST":
+        semester = request.form.get("semester")
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT s.dept_name, COUNT(DISTINCT t.ID) AS current_students
+            FROM student s
+            JOIN takes t ON s.ID = t.ID
+            JOIN section sec ON t.course_id = sec.course_id AND t.sec_id = sec.sec_id
+            WHERE t.semester = %s
+            GROUP BY s.dept_name
+        """, (semester,))
+        results = cursor.fetchall()
+
+    return render_template("instructor/current_students.html", results=results)
+
+
 
 
 

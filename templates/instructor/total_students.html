@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Total Students by Department</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <h1>Total Number of Students by Department</h1>
+
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Department</th>
+            <th>Total Students</th>
+        </tr>
+        {% for row in results %}
+        <tr>
+            <td>{{ row.dept_name }}</td>
+            <td>{{ row.total_students }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <a href="/instructor-portal" class="btn">Back to Portal</a>
+</body>
+</html>

@@ -2,14 +2,14 @@
 <html>
 <head>
     <title>Instructor Portal</title>
-    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 
 <body>
 
     <h1>Instructor Portal</h1>
 
-    <p>Welcome, {{instructor.name}}! Choose an option below:</p>
+    <p>Welcome, {{ instructor.name }}! Choose an option below:</p>
 
     <div class="menu">
         <a class="btn" href="/instructor-portal/grades">Submit/Change Grades</a>
@@ -18,8 +18,12 @@
         <a class="btn" href="/instructor-portal/section">Check Section</a>
         <a class="btn" href="/instructor-portal/update-info">Update Personal Info</a>
 
-        <a class="btn" href="/instructor-portal/department-averages">Avg grades by Dept.</a>         
-        <a class="btn" href="/instructor-portal/class-averages">Avg grades by Sem.</a>   
+        <!-- Analytics -->
+        <a class="btn" href="/instructor-portal/department-averages">Avg Grades by Dept.</a>         
+        <a class="btn" href="/instructor-portal/class-averages">Avg Grades by Class/Sem.</a> 
+        <a class="btn" href="/instructor/best-worst-class">Best/Worst Classes</a>
+        <a class="btn" href="/instructor/total-students">Total Students by Dept.</a>
+        <a class="btn" href="/instructor/current-students">Current Students by Dept.</a>  
 
         <a class="btn logout" href="/logout">Logout</a>
     </div>
