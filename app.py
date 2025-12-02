@@ -455,7 +455,6 @@ def remove_student():
     db.commit()
 
     return redirect("/instructor-portal/section")
-
 @app.route("/instructor-portal/department-averages", methods=["GET"])
 def department_averages():
     if session.get("role") != "instructor":
@@ -465,7 +464,7 @@ def department_averages():
     cursor = db.cursor(dictionary=True)
 
     query = """
-        SELECT s.dept_name,
+        SELECT d.dept_name,
                AVG(
                    CASE UPPER(t.grade)
                        WHEN 'A' THEN 4
@@ -476,17 +475,17 @@ def department_averages():
                        ELSE NULL
                    END
                ) AS avg_gpa
-        FROM takes t
-        JOIN student s ON t.ID = s.ID
-        WHERE t.grade IS NOT NULL
-        GROUP BY s.dept_name
-        ORDER BY s.dept_name;
+        FROM department d
+        LEFT JOIN student s ON s.dept_name = d.dept_name
+        LEFT JOIN takes t ON t.ID = s.ID AND t.grade IS NOT NULL
+        GROUP BY d.dept_name
+        ORDER BY d.dept_name;
     """
 
     cursor.execute(query)
     dept_averages = cursor.fetchall()
 
-    # Round values
+    # Round values if they exist
     for row in dept_averages:
         if row["avg_gpa"] is not None:
             row["avg_gpa"] = round(row["avg_gpa"], 2)
@@ -495,6 +494,7 @@ def department_averages():
         "instructor/department_averages.html",
         dept_averages=dept_averages
     )
+
 
 @app.route("/instructor-portal/class-averages", methods=["GET", "POST"])
 def class_averages():
