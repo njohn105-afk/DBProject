@@ -1742,16 +1742,15 @@ def admin_student_update():
     departments = cursor.fetchall()
 
     if request.method == "POST":
-        new_id = request.form["ID"]
         name = request.form["name"]
         dept_name = request.form["dept_name"]
         tot_cred = request.form["tot_cred"]
 
         cursor.execute("""
             UPDATE student
-            SET ID=%s, name=%s, dept_name=%s, tot_cred=%s
+            SET name=%s, dept_name=%s, tot_cred=%s
             WHERE ID=%s
-        """, (new_id, name, dept_name, tot_cred, student_id))
+        """, (name, dept_name, tot_cred, student_id))
         db.commit()
 
         return render_template("message.html",
@@ -1762,7 +1761,6 @@ def admin_student_update():
     return render_template("admin/student_update.html",
                            student=student,
                            departments=departments)
-
 
 @app.route("/admin/student/delete")
 def admin_student_delete():
