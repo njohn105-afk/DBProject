@@ -321,6 +321,25 @@ def add_prereq():
     course_id = request.form["course_id"]
     prereq_id = request.form["prereq_id"]
 
+    def throw_err(msg):
+        return render_template(
+            "message.html",
+            message=f"Error: Cannot add prerequisite '{prereq_id}' to '{course_id}': {msg}.",
+            category="error",
+            redirect_url=f"/instructor-portal/prereq?course_id={course_id}"
+        )
+    #### PREREQ INTEGRITY CHECKS
+    if course_id == prereq_id:
+        return throw_err("A course cannot be a prerequisite of itself.")
+    
+    cursor.execute("SELECT COUNT(*) AS count FROM prereq WHERE course_id = %s AND prereq_id = %s", (course_id, prereq_id))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This prerequisite setup already exists.")
+    
+    cursor.execute("SELECT COUNT(*) AS count FROM prereq WHERE course_id = %s AND prereq_id = %s", (prereq_id, course_id))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This course is already a prerequisite of the selected course.")
+
     cursor.execute("INSERT INTO prereq (course_id, prereq_id) VALUES (%s, %s)", (course_id, prereq_id))
     db.commit()
 
@@ -869,11 +888,29 @@ def add():
             category="error",
             redirect_url="/student-portal"
         )
+    #### ENSURE SECTION ACTUALYL EXISTS
+    cursor.execute("""
+        SELECT COUNT(*) AS count
+        FROM section
+        WHERE course_id = %s
+        AND sec_id = %s
+        AND semester = %s
+        AND year = %s
+    """, (course_id, sec_id, semester, year))
+
+    if cursor.fetchone()["count"] == 0:
+        return render_template(
+            "message.html",
+            message="Error: This section does not exist.",
+            category="error",
+            redirect_url="/student-portal/register"
+        )
     
     insert_query = """
         INSERT INTO takes (ID, course_id, sec_id, semester, year)
         VALUES (%s, %s, %s, %s, %s)
     """
+
     cursor.execute(insert_query, (STUDENT_ID, course_id, sec_id, semester, year))
     db.commit()
 
@@ -1125,6 +1162,36 @@ def admin_course_delete():
     db = get_db()
     cursor = db.cursor()
 
+    def throw_err(msg):
+        return render_template(
+            "message.html",
+            message=f"Error: Cannot delete course '{course_id}': {msg}.",
+            category="error",
+            redirect_url="/admin/course/list"
+        )
+    
+    #### COURSE INTEGRITY CHECKS
+    cursor.execute("SELECT COUNT(*) AS count FROM section WHERE course_id = %s", (course_id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("Sections exist for this course.")
+
+    cursor.execute("SELECT COUNT(*) AS count FROM takes WHERE course_id = %s", (course_id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("Students are currently enrolled in this course.")
+
+    cursor.execute("SELECT COUNT(*) AS count FROM teaches WHERE course_id = %s", (course_id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This course is assigned to instructors.")
+
+    cursor.execute("SELECT COUNT(*) AS count FROM prereq WHERE prereq_id = %s", (course_id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This course is a prerequisite for another course")
+
+    cursor.execute("SELECT COUNT(*) AS count FROM prereq WHERE course_id = %s", (course_id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This course has prerequisites assigned")
+
+
     cursor.execute("DELETE FROM course WHERE course_id = %s", (course_id,))
     db.commit()
 
@@ -1267,6 +1334,23 @@ def admin_section_delete():
     year = request.args.get("year")
     db = get_db()
     cursor = db.cursor()
+
+    def throw_err(msg):
+        return render_template(
+            "message.html",
+            message=f"Error: Cannot delete section {course_id}-{sec_id} ({semester}, {year}): {msg}.",
+            category="error",
+            redirect_url="/admin/section"
+        )
+    
+    cursor.execute("SELECT COUNT(*) AS count FROM takes WHERE course_id = %s AND sec_id = %s AND semester = %s AND year = %s", (course_id, sec_id, semester, year))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("Students are currently enrolled in this section.")
+
+    cursor.execute("SELECT COUNT(*) AS count FROM teaches WHERE course_id = %s AND sec_id = %s AND semester = %s AND year = %s ", (course_id, sec_id, semester, year))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("An instructor is assigned to this section.")
+
 
     delete_query = """
         DELETE FROM section WHERE course_id = %s
@@ -1510,6 +1594,7 @@ def admin_department_update():
 
     return render_template("admin/department_update.html", department=department)
 
+
 @app.route("/admin/department/delete")
 def admin_department_delete():
     if session.get("role") != "admin":
@@ -1517,6 +1602,28 @@ def admin_department_delete():
     dept_name = request.args.get("dept_name")
     db = get_db()
     cursor = db.cursor()
+
+    def throw_err(msg):
+        return render_template(
+            "message.html",
+            message=f"Error: Cannot delete department '{dept_name}': {msg}.",
+            category="error",
+            redirect_url="/admin/department"
+        )
+
+    ### DEPARTMENT INTEGRITY CHECKS
+    cursor.execute("SELECT COUNT(*) AS count FROM instructor WHERE dept_name = %s", (dept_name,))
+    if cursor.fetchone()["count"] > 0:
+        throw_err("Instructors are assigned to this department.")
+
+    cursor.execute("SELECT COUNT(*) AS count FROM student WHERE dept_name = %s", (dept_name,))
+    if cursor.fetchone()["count"] > 0:
+        throw_err("Students are assigned to this major.")
+
+    cursor.execute("SELECT COUNT(*) AS count FROM course WHERE dept_name = %s", (dept_name,))
+    if cursor.fetchone()["count"] > 0:
+        throw_err("Courses still exist in this department.")
+
 
     delete_query = """
         DELETE FROM department WHERE dept_name = %s
@@ -1648,6 +1755,20 @@ def admin_time_slot_delete():
     db = get_db()
     cursor = db.cursor()
 
+    def throw_err(msg):
+        return render_template(
+            "message.html",
+            message=f"Error: Cannot delete time slot '{time_slot_id}': {msg}.",
+            category="error",
+            redirect_url="/admin/time_slot"
+        )
+    
+    #### TIME SLOT INTEGRITY CHECKS
+    cursor.execute("SELECT COUNT(*) AS count FROM section WHERE time_slot_id = %s", (time_slot_id,))
+    
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This time slot is assigned a section.")
+
     delete_query = """
         DELETE FROM time_slot WHERE time_slot_id = %s
     """
@@ -1766,6 +1887,26 @@ def admin_instructor_delete():
     db = get_db()
     cursor = db.cursor()
 
+    def throw_err(msg):
+        return render_template(
+            "message.html",
+            message=f"Error: Cannot delete instructor '{id}': {msg}.",
+            category="error",
+            redirect_url="/admin/instructor/list"
+        )
+    #### INSTRUCTOR INTEGRITY CHECKS
+    cursor.execute("SELECT COUNT(*) AS count FROM teaches WHERE ID = %s", (id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This instructor is currently teaching one or more sections.")
+    
+    cursor.execute("SELECT COUNT(*) AS count FROM advisor WHERE i_id = %s", (id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This instructor is assigned as an advisor.")
+    
+    cursor.execute("SELECT COUNT(*) AS count FROM users WHERE linked_id = %s AND role = 'instructor'", (id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This instructor is linked to a user account.")
+
     cursor.execute("DELETE FROM instructor WHERE ID = %s", (id,))
     db.commit()
 
@@ -1875,6 +2016,26 @@ def admin_student_delete():
     student_id = request.args.get("ID")
     db = get_db()
     cursor = db.cursor()
+
+    def throw_err(msg):
+        return render_template(
+            "message.html",
+            message=f"Error: Cannot delete student '{student_id}': {msg}.",
+            category="error",
+            redirect_url="/admin/student"
+        )
+    #### STUDENT INTEGRITY CHECKS
+    cursor.execute("SELECT COUNT(*) AS count FROM takes WHERE ID = %s", (student_id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This student is enrolled in one or more sections.")
+    
+    cursor.execute("SELECT COUNT(*) AS count FROM advisor WHERE s_id = %s", (student_id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This student has an assigned academic advisor.")
+    
+    cursor.execute("SELECT COUNT(*) AS count FROM users WHERE linked_id = %s AND role = 'student'", (student_id,))
+    if cursor.fetchone()["count"] > 0:
+        return throw_err("This student is linked to a user account.")
 
     cursor.execute("DELETE FROM student WHERE ID = %s", (student_id,))
     db.commit()
