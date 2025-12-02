@@ -316,7 +316,7 @@ def add_prereq():
     if session.get("role") != "instructor":
         return redirect("/login")
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     course_id = request.form["course_id"]
     prereq_id = request.form["prereq_id"]
@@ -351,7 +351,7 @@ def remove_prereq():
     if session.get("role") != "instructor":
         return redirect("/login")
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     course_id = request.form["course_id"]
     prereq_id = request.form["prereq_id"]
@@ -425,7 +425,7 @@ def remove_student():
         return redirect("/login")
     
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
     instructor_id = session.get("linked_id")
 
     course_id = request.form.get("course_id")
@@ -843,12 +843,25 @@ def register():
     cursor = db.cursor(dictionary=True)
     if session.get("role") != "student":
         return redirect("/login")
+    
+    STUDENT_ID = session["linked_id"]
 
     query = """
-        SELECT * FROM section WHERE semester = 'Spring' and year = 2022
+        SELECT *
+        FROM section s
+        WHERE s.semester = 'Spring'
+        AND s.year = 2022
+        AND NOT EXISTS (
+            SELECT 1
+            FROM takes t
+            WHERE t.ID = %s
+            AND t.course_id = s.course_id
+            AND t.sec_id = s.sec_id
+            AND t.semester = s.semester
+            AND t.year = s.year)
     """
 
-    cursor.execute(query)
+    cursor.execute(query, (STUDENT_ID,))
     courses = cursor.fetchall()
 
     return render_template("student/register.html", 
@@ -1160,7 +1173,7 @@ def admin_course_delete():
         return redirect("/login")
     course_id = request.args.get("id")
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     def throw_err(msg):
         return render_template(
@@ -1333,7 +1346,7 @@ def admin_section_delete():
     semester = request.args.get("semester")
     year = request.args.get("year")
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     def throw_err(msg):
         return render_template(
@@ -1493,7 +1506,7 @@ def admin_classroom_delete():
     building = request.args.get("building")
     room_number = request.args.get("room_number")
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     delete_query = """
         DELETE FROM classroom WHERE building = %s
@@ -1616,7 +1629,7 @@ def admin_department_delete():
         return redirect("/login")
     dept_name = request.args.get("dept_name")
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     def throw_err(msg):
         return render_template(
@@ -1768,7 +1781,7 @@ def admin_time_slot_delete():
         return redirect("/login")
     time_slot_id = request.args.get("time_slot_id")
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     def throw_err(msg):
         return render_template(
@@ -1826,7 +1839,7 @@ def admin_instructor_create():
         return redirect("/login")
 
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     if request.method == "POST":
         name = request.form["name"]
@@ -1900,7 +1913,7 @@ def admin_instructor_delete():
 
     id = request.args.get("id")
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     def throw_err(msg):
         return render_template(
@@ -2030,7 +2043,7 @@ def admin_student_delete():
 
     student_id = request.args.get("ID")
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     def throw_err(msg):
         return render_template(
@@ -2176,7 +2189,7 @@ def teaches_delete():
         return redirect("/login")
     
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
     
     course_id = request.form.get("course_id")
     sec_id = request.form.get("sec_id")
