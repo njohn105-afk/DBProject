@@ -189,11 +189,21 @@ def add_advisee():
     cursor.execute("SELECT * FROM student WHERE ID = %s", (student_id,))
     student = cursor.fetchone()
     if not student:
-        return "Student ID not found!"
+        return render_template(
+                "message.html",
+                message="Error: Student ID not found!",
+                category="error",
+                redirect_url="/instructor-portal"
+            )
 
     cursor.execute("SELECT * FROM advisor WHERE s_id = %s", (student_id,))
     if cursor.fetchone():
-        return "This student already has an advisor."
+        return render_template(
+                "message.html",
+                message="Error: Student already has an advisor",
+                category="error",
+                redirect_url="/instructor-portal"
+            )
 
     cursor.execute("INSERT INTO advisor (s_id, i_id) VALUES (%s, %s)", (student_id, instructor_id))
     db.commit()
@@ -411,7 +421,12 @@ def remove_student():
     """, (instructor_id, course_id, sec_id, semester, year))
     teaches = cursor.fetchone()
     if not teaches:
-        return "You are not authorized to modify this section.", 403
+        return render_template(
+                "message.html",
+                message="Error: You cannot modify this section.",
+                category="error",
+                redirect_url="/instructor-portal"
+            )
 
     # Remove student from takes table
     cursor.execute("""
@@ -852,7 +867,7 @@ def add():
             "message.html",
             message="Error: Already registered for this course",
             category="error",
-            redirect_url="/student-portal/register"
+            redirect_url="/student-portal"
         )
     
     insert_query = """
@@ -866,7 +881,7 @@ def add():
             "message.html",
             message="Registration success!",
             category="error",
-            redirect_url="/student-portal/register"
+            redirect_url="/student-portal"
         )
 
 # Drop portal
@@ -1044,7 +1059,12 @@ def admin_course_create():
         cursor.execute(query, (course_id, title, dept_name, credits))
         db.commit()
 
-        return "Course created successfully!"
+        return render_template(
+                "message.html",
+                message="Course created successfully!",
+                category="error",
+                redirect_url="/admin-portal"
+            )
 
     cursor.execute("SELECT dept_name FROM department ORDER BY dept_name;")
     departments = cursor.fetchall()
@@ -1068,7 +1088,7 @@ def admin_course_update():
             "message.html",
             message="Error: Course not found",
             category="error",
-            redirect_url="/student-portal/register"
+            redirect_url="/admin-portal"
         )
 
     if request.method == "POST":
@@ -1088,7 +1108,7 @@ def admin_course_update():
             "message.html",
             message="Course updated successfully!",
             category="error",
-            redirect_url="/student-portal/register"
+            redirect_url="/admin-portal"
         )
 
     cursor.execute("SELECT dept_name FROM department ORDER BY dept_name;")
@@ -1112,7 +1132,7 @@ def admin_course_delete():
             "message.html",
             message="Error: Course deleted",
             category="error",
-            redirect_url="/student-portal/register"
+            redirect_url="/admin-portal"
         )
 
 
@@ -1159,7 +1179,12 @@ def admin_section_create():
         cursor.execute(query, (course_id, sec_id, semester, year, building, room_number, time_slot_id))
         db.commit()
 
-        return "Section created successfully!"
+        return render_template(
+                "message.html",
+                message="Section created successfully!",
+                category="error",
+                redirect_url="/admin-portal"
+            )
 
 
     return render_template("admin/section_create.html")
@@ -1189,7 +1214,7 @@ def admin_section_update():
             "message.html",
             message="Error: Section not found.",
             category="error",
-            redirect_url="/student-portal/register"
+            redirect_url="/admin-portal"
         )
 
     if request.method == "POST":
@@ -1299,7 +1324,12 @@ def admin_classroom_create():
         cursor.execute(query, (building, room_number, capacity))
         db.commit()
 
-        return "Classroom created successfully!"
+        return render_template(
+                "message.html",
+                message="Classroom created successfully!",
+                category="error",
+                redirect_url="/admin-portal"
+            )
 
 
     return render_template("admin/classroom_create.html")
@@ -1328,11 +1358,11 @@ def admin_classroom_update():
 
     if not classroom:
         return render_template(
-            "message.html",
-            message="Error: Classroom not found.",
-            category="error",
-            redirect_url="/admin/classroom/list"
-        )
+                "message.html",
+                message="Error: Classroom not found.",
+                category="error",
+                redirect_url="/admin-portal"
+            )
 
     # --- Handle POST update ---
     if request.method == "POST":
