@@ -1642,15 +1642,16 @@ def admin_department_delete():
     ### DEPARTMENT INTEGRITY CHECKS
     cursor.execute("SELECT COUNT(*) AS count FROM instructor WHERE dept_name = %s", (dept_name,))
     if cursor.fetchone()["count"] > 0:
-        throw_err("Instructors are assigned to this department.")
+        return throw_err("Instructors are assigned to this department.")
 
     cursor.execute("SELECT COUNT(*) AS count FROM student WHERE dept_name = %s", (dept_name,))
     if cursor.fetchone()["count"] > 0:
-        throw_err("Students are assigned to this major.")
+        return throw_err("Students are assigned to this major.")
 
     cursor.execute("SELECT COUNT(*) AS count FROM course WHERE dept_name = %s", (dept_name,))
     if cursor.fetchone()["count"] > 0:
-        throw_err("Courses still exist in this department.")
+        return throw_err("Courses still exist in this department.")
+
 
 
     delete_query = """
