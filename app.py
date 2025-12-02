@@ -431,22 +431,24 @@ def department_averages():
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    query = """
-        SELECT d.dept_name,
-            AVG(
-                CASE t.grade
-                    WHEN 'A' THEN 4
-                    WHEN 'B' THEN 3
-                    WHEN 'C' THEN 2
-                    WHEN 'D' THEN 1
-                    WHEN 'F' THEN 0
-                END
-            ) AS avg_gpa
-        FROM takes t
-        JOIN student s on t.ID = s.ID
-        JOIN department d on s.dept_name = d.dept_name
-        GROUP BY d.dept_name;
-    """
+    query = query = """
+    SELECT d.dept_name,
+        AVG(
+            CASE UPPER(t.grade)
+                WHEN 'A' THEN 4
+                WHEN 'B' THEN 3
+                WHEN 'C' THEN 2
+                WHEN 'D' THEN 1
+                WHEN 'F' THEN 0
+                ELSE NULL
+            END
+        ) AS avg_gpa
+    FROM takes t
+    JOIN student s ON t.ID = s.ID
+    JOIN department d ON s.dept_name = d.dept_name
+    WHERE t.grade IS NOT NULL
+    GROUP BY d.dept_name;
+"""
 
     cursor.execute(query)
     dept_averages = cursor.fetchall()
@@ -483,33 +485,35 @@ def class_averages():
 
         # Multiply year values by 10 for easier ordering
         query = """
-            SELECT 
-                AVG(
-                    CASE 
-                        WHEN grade='A' THEN 4.0
-                        WHEN grade='B' THEN 3.0
-                        WHEN grade='C' THEN 2.0
-                        WHEN grade='D' THEN 1.0
-                        WHEN grade='F' THEN 0.0
-                        ELSE NULL
-                    END
-                ) AS avg_grade
-            FROM takes tk
-            JOIN teaches t ON tk.course_id = t.course_id 
-                           AND tk.sec_id = t.sec_id
-                           AND tk.semester = t.semester
-                           AND tk.year = t.year
-            WHERE t.ID = %s
-              AND tk.course_id = %s
-              AND (tk.year * 10 + 
-                   CASE tk.semester
-                       WHEN 'Spring' THEN 1
-                       WHEN 'Summer' THEN 2
-                       WHEN 'Fall' THEN 3
-                       WHEN 'Winter' THEN 4
-                   END)
-                  BETWEEN %s AND %s
-        """
+    SELECT 
+        AVG(
+            CASE UPPER(tk.grade)
+                WHEN 'A' THEN 4.0
+                WHEN 'B' THEN 3.0
+                WHEN 'C' THEN 2.0
+                WHEN 'D' THEN 1.0
+                WHEN 'F' THEN 0.0
+                ELSE NULL
+            END
+        ) AS avg_grade
+    FROM takes tk
+    JOIN teaches t 
+        ON tk.course_id = t.course_id 
+       AND tk.sec_id = t.sec_id
+       AND tk.semester = t.semester
+       AND tk.year = t.year
+    WHERE t.ID = %s
+      AND tk.course_id = %s
+      AND (tk.year * 10 + 
+           CASE UPPER(tk.semester)
+               WHEN 'SPRING' THEN 1
+               WHEN 'SUMMER' THEN 2
+               WHEN 'FALL' THEN 3
+               WHEN 'WINTER' THEN 4
+           END)
+          BETWEEN %s AND %s
+      AND tk.grade IS NOT NULL
+"""
 
         cursor.execute(query, (instructor_id, course_id, start_val, end_val))
         results = cursor.fetchone()
@@ -528,13 +532,27 @@ def best_worst_class():
         semester = request.form.get("semester")
         db = get_db()
         cursor = db.cursor(dictionary=True)
+
+        # Convert letter grades to numbers so AVG() works
         cursor.execute("""
-            SELECT course_id, AVG(grade) AS avg_grade
+            SELECT course_id,
+                   AVG(
+                       CASE UPPER(grade)
+                           WHEN 'A' THEN 4.0
+                           WHEN 'B' THEN 3.0
+                           WHEN 'C' THEN 2.0
+                           WHEN 'D' THEN 1.0
+                           WHEN 'F' THEN 0.0
+                           ELSE NULL
+                       END
+                   ) AS avg_grade
             FROM takes
             WHERE semester = %s
+              AND grade IS NOT NULL
             GROUP BY course_id
             ORDER BY avg_grade DESC
         """, (semester,))
+
         results = cursor.fetchall()
 
     return render_template("instructor/best_worst_class.html", results=results)
