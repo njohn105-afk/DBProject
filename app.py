@@ -389,6 +389,107 @@ def view_sections():
                            selected_section=selected_section,
                            roster=roster)
 
+# Average grade of all students based on department
+@app.route("/instructor-portal/department-averages", methods=["GET", "POST"])
+def department_averages():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    query = """
+        SELECT d.dept_name,
+            AVG(
+                CASE t.grade
+                    WHEN 'A' THEN 4
+                    WHEN 'B' THEN 3
+                    WHEN 'C' THEN 2
+                    WHEN 'D' THEN 1
+                    WHEN 'F' THEN 0
+                END
+            ) AS avg_gpa
+        FROM takes t
+        JOIN student s on t.ID = s.ID
+        JOIN department d on s.dept_name = d.dept_name
+        GROUP BY d.dept_name;
+    """
+
+    cursor.execute(query)
+    dept_averages = cursor.fetchall()
+    return render_template("instructor/department_averages.html", dept_averages=dept_averages)
+
+
+# Average grade of class across a range of semesters
+@app.route("/instructor-portal/class-averages", methods=["GET", "POST"] )
+def class_averages():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    instructor_id = session.get("linked_id")
+
+    cursor.execute("""
+        SELECT DISTINCT c.course_id, c.title
+        FROM teaches t
+        JOIN course c ON t.course_id = c.course_id
+        WHERE t.ID = %s
+    """, (instructor_id,))
+    courses = cursor.fetchall()
+    results = None
+
+    if request.method == "POST":
+        course_id = request.form.get("course_id")
+        start_sem = request.form.get("start_sem")
+        start_year = int(request.form.get("start_year"))
+        end_sem = request.form.get("end_sem")
+        end_year = int(request.form.get("end_year"))
+        start_val = start_year * 10 + SEMESTER_ORDER[start_sem]
+        end_val = end_year * 10 + SEMESTER_ORDER[end_sem]
+
+        # Multiply year values by 10 for easier ordering
+        query = """
+            SELECT 
+                AVG(
+                    CASE 
+                        WHEN grade='A' THEN 4.0
+                        WHEN grade='B' THEN 3.0
+                        WHEN grade='C' THEN 2.0
+                        WHEN grade='D' THEN 1.0
+                        WHEN grade='F' THEN 0.0
+                        ELSE NULL
+                    END
+                ) AS avg_grade
+            FROM takes tk
+            JOIN teaches t ON tk.course_id = t.course_id 
+                           AND tk.sec_id = t.sec_id
+                           AND tk.semester = t.semester
+                           AND tk.year = t.year
+            WHERE t.ID = %s
+              AND tk.course_id = %s
+              AND (tk.year * 10 + 
+                   CASE tk.semester
+                       WHEN 'Spring' THEN 1
+                       WHEN 'Summer' THEN 2
+                       WHEN 'Fall' THEN 3
+                       WHEN 'Winter' THEN 4
+                   END)
+                  BETWEEN %s AND %s
+        """
+
+        cursor.execute(query, (instructor_id, course_id, start_val, end_val))
+        results = cursor.fetchone()
+    return render_template("instructor/class_averages.html",
+                           courses=courses,
+                           results=results)
+
+
+
+
+
+
+
+
 ################### STUDENT
 
 @app.route("/")

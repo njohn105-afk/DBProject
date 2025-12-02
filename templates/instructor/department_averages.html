@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instructor Portal</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+
+<body>
+
+    <h1>Department Grade Averages</h1>
+
+    {% if dept_averages %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Dept. Name</th>
+            <th>Avg. GPA</th>
+        </tr>
+
+        {% for row in dept_averages %}
+        <tr>
+            <td>{{ row.dept_name }}</td>
+            <td>{{ row.avg_gpa }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>No course data found for this student.</p>
+    {% endif %}
+
+    <a href="/instructor-portal" class="btn">Back to Instructor Portal</a>
+
+
+</body>

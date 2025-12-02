@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instructor Portal</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+
+<body>
+    <h1>Class Averages Over Semester Range</h1>
+
+    <form method="POST">
+        <label>Course:</label>
+        <select name="course_id">
+            {% for c in courses %}
+                <option value="{{ c.course_id }}">{{ c.course_id }} - {{ c.title }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label>Start Semester:</label>
+        <select name="start_sem">
+            <option>Spring</option>
+            <option>Summer</option>
+            <option>Fall</option>
+            <option>Winter</option>
+        </select><br><br>
+
+        <label>Start Year:</label>
+        <input type="number" name="start_year" class="form"><br><br>
+
+        <label>End Semester:</label>
+        <select name="end_sem">
+            <option>Spring</option>
+            <option>Summer</option>
+            <option>Fall</option>
+            <option>Winter</option>
+        </select><br><br>
+
+        <label>End Year:</label>
+        <input type="number" name="end_year" class="form"><br><br>
+
+        <button type="submit" class="btn-green">Get Average</button>
+    </form>
+
+    {% if results %}
+        <h2>Average Grade: 
+            {{ results.avg_grade if results.avg_grade else "No Grades Found" }}
+        </h2>
+    {% endif %}
+
+    <a href="/instructor-portal" class="btn">Back to Instructor Portal</a>
+</body>
