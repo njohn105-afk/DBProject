@@ -1960,45 +1960,40 @@ def teaches_update():
         return redirect("/login")
 
     db = get_db()
-    cursor = db.cursor(dictionary=True, buffered=True)  # Buffered cursor
+    cursor = db.cursor(dictionary=True)
 
+    # Original PK values from URL
     course_id = request.args.get("course_id")
     sec_id = request.args.get("sec_id")
     semester = request.args.get("semester")
     year = request.args.get("year")
+    orig_ID = request.args.get("ID")
 
-    # Fetch courses and instructors
+    # Fetch dropdown data
     cursor.execute("SELECT course_id, title FROM course ORDER BY course_id")
     courses = cursor.fetchall()
 
     cursor.execute("SELECT ID, name, dept_name FROM instructor ORDER BY name")
     instructors = cursor.fetchall()
 
-    # Fetch current assignment
-    cursor.execute("""
-        SELECT ID FROM teaches
-        WHERE course_id=%s AND sec_id=%s AND semester=%s AND year=%s
-    """, (course_id, sec_id, semester, year))
-    current = cursor.fetchone()
-    prefill_ID = current["ID"] if current else None
-
+    # POST: Process update
     if request.method == "POST":
         new_course_id = request.form.get("course_id")
         new_sec_id = request.form.get("sec_id")
         new_semester = request.form.get("semester")
         new_year = request.form.get("year")
-        ID = request.form.get("ID")
+        new_ID = request.form.get("ID")
+        orig_ID = request.form.get("orig_ID")  # Pull original ID from hidden field
 
-        if ID:
-            # Update assignment
-            cursor.execute("""
-                UPDATE teaches
-                SET course_id=%s, sec_id=%s, semester=%s, year=%s, ID=%s
-                WHERE course_id=%s AND sec_id=%s AND semester=%s AND year=%s
-            """, (new_course_id, new_sec_id, new_semester, new_year, ID,
-                  course_id, sec_id, semester, year))
-            db.commit()
-            return redirect("/admin/teaches/list")
+        cursor.execute("""
+            UPDATE teaches
+            SET course_id=%s, sec_id=%s, semester=%s, year=%s, ID=%s
+            WHERE course_id=%s AND sec_id=%s AND semester=%s AND year=%s AND ID=%s
+        """, (new_course_id, new_sec_id, new_semester, new_year, new_ID,
+              course_id, sec_id, semester, year, orig_ID))
+
+        db.commit()
+        return redirect("/admin/teaches/list")
 
     return render_template("admin/teaches_update.html",
                            courses=courses,
@@ -2007,7 +2002,8 @@ def teaches_update():
                            sec_id=sec_id,
                            semester=semester,
                            year=year,
-                           prefill_ID=prefill_ID)
+                           prefill_ID=orig_ID)
+
 
 @app.route("/admin/teaches/delete", methods=["POST"])
 def teaches_delete():

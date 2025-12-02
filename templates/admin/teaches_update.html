@@ -6,12 +6,18 @@
 </head>
 <body>
     <h1>Update Assignment</h1>
+
     <form method="POST">
+
+        <!-- Hidden field for original instructor ID -->
+        <input type="hidden" name="orig_ID" value="{{ prefill_ID }}">
+
         <label>Course:</label>
         <select name="course_id" required>
             <option value="" disabled>Select course</option>
             {% for c in courses %}
-            <option value="{{ c.course_id }}" {% if c.course_id == course_id %}selected{% endif %}>
+            <option value="{{ c.course_id }}" 
+                {% if c.course_id == course_id %}selected{% endif %}>
                 {{ c.course_id }} - {{ c.title }}
             </option>
             {% endfor %}
@@ -30,7 +36,8 @@
         <select name="ID" required>
             <option value="" disabled>Select instructor</option>
             {% for i in instructors %}
-            <option value="{{ i.ID }}" {% if i.ID == prefill_ID %}selected{% endif %}>
+            <option value="{{ i.ID }}" 
+                {% if i.ID == prefill_ID %}selected{% endif %}>
                 {{ i.name }} ({{ i.dept_name }})
             </option>
             {% endfor %}
@@ -38,6 +45,7 @@
 
         <button type="submit" class="btn btn-green">Update Assignment</button>
     </form>
+
     <a class="btn" href="/admin/teaches/list">Back to List</a>
 </body>
 </html>
