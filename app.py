@@ -1336,21 +1336,26 @@ def admin_classroom_create():
 
 @app.route("/admin/classroom/update", methods=["GET", "POST"])
 def admin_classroom_update():
+    # --- Admin check ---
     if session.get("role") != "admin":
         return redirect("/login")
+
+    # Get classroom keys from URL
     building = request.args.get("building")
     room_number = request.args.get("room_number")
 
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
+    # --- Fetch classroom ---
     select_query = """
         SELECT * FROM classroom
         WHERE building = %s
-        AND room_number = %s
+          AND room_number = %s
     """
     cursor.execute(select_query, (building, room_number))
     classroom = cursor.fetchone()
+
     if not classroom:
         return render_template(
                 "message.html",
@@ -1359,10 +1364,19 @@ def admin_classroom_update():
                 redirect_url="/admin-portal"
             )
 
+    # --- Handle POST update ---
     if request.method == "POST":
-        new_building    = request.form["building"]
-        new_room_number = request.form["room_number"]
-        capacity     = request.form["capacity"]
+        new_building = request.form.get("building")
+        new_room_number = request.form.get("room_number")
+        capacity = request.form.get("capacity")
+
+        if not new_building or not new_room_number or not capacity:
+            return render_template(
+                "message.html",
+                message="All fields are required.",
+                category="error",
+                redirect_url=f"/admin/classroom/update?building={building}&room_number={room_number}"
+            )
 
         update_query = """
             UPDATE classroom
@@ -1370,21 +1384,22 @@ def admin_classroom_update():
                 room_number = %s,
                 capacity = %s
             WHERE building = %s
-                AND room_number = %s
+              AND room_number = %s
         """
-
         cursor.execute(update_query, (
             new_building, new_room_number, capacity, building, room_number
         ))
         db.commit()
 
+        # --- Show styled confirmation ---
         return render_template(
-                "message.html",
-                message="Classroom updated successfully!",
-                category="error",
-                redirect_url="/admin-portal"
-            )
+            "message.html",
+            message="Classroom updated successfully!",
+            category="success",
+            redirect_url="/admin/classroom/list"
+        )
 
+    # --- GET: show update form ---
     return render_template("admin/classroom_update.html", classroom=classroom)
 
 @app.route("/admin/classroom/delete")
