@@ -405,7 +405,6 @@ def remove_student():
     year = request.form.get("year")
     student_id = request.form.get("student_id")
 
-    # Optional: Verify the instructor actually teaches this section
     cursor.execute("""
         SELECT * FROM teaches
         WHERE ID=%s AND course_id=%s AND sec_id=%s AND semester=%s AND year=%s
@@ -423,55 +422,62 @@ def remove_student():
 
     return redirect("/instructor-portal/section")
 
-# Average grade of all students based on department
-@app.route("/instructor-portal/department-averages", methods=["GET", "POST"])
+@app.route("/instructor-portal/department-averages", methods=["GET"])
 def department_averages():
     if session.get("role") != "instructor":
         return redirect("/login")
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    query = query = """
-    SELECT d.dept_name,
-        AVG(
-            CASE UPPER(t.grade)
-                WHEN 'A' THEN 4
-                WHEN 'B' THEN 3
-                WHEN 'C' THEN 2
-                WHEN 'D' THEN 1
-                WHEN 'F' THEN 0
-                ELSE NULL
-            END
-        ) AS avg_gpa
-    FROM takes t
-    JOIN student s ON t.ID = s.ID
-    JOIN department d ON s.dept_name = d.dept_name
-    WHERE t.grade IS NOT NULL
-    GROUP BY d.dept_name;
-"""
+    query = """
+        SELECT s.dept_name,
+               AVG(
+                   CASE UPPER(t.grade)
+                       WHEN 'A' THEN 4
+                       WHEN 'B' THEN 3
+                       WHEN 'C' THEN 2
+                       WHEN 'D' THEN 1
+                       WHEN 'F' THEN 0
+                       ELSE NULL
+                   END
+               ) AS avg_gpa
+        FROM takes t
+        JOIN student s ON t.ID = s.ID
+        WHERE t.grade IS NOT NULL
+        GROUP BY s.dept_name
+        ORDER BY s.dept_name;
+    """
 
     cursor.execute(query)
     dept_averages = cursor.fetchall()
-    return render_template("instructor/department_averages.html", dept_averages=dept_averages)
 
+    # Round values
+    for row in dept_averages:
+        if row["avg_gpa"] is not None:
+            row["avg_gpa"] = round(row["avg_gpa"], 2)
 
-# Average grade of class across a range of semesters
-@app.route("/instructor-portal/class-averages", methods=["GET", "POST"] )
+    return render_template(
+        "instructor/department_averages.html",
+        dept_averages=dept_averages
+    )
+
+@app.route("/instructor-portal/class-averages", methods=["GET", "POST"])
 def class_averages():
     if session.get("role") != "instructor":
         return redirect("/login")
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    instructor_id = session.get("linked_id")
-
+    # Get ALL courses
     cursor.execute("""
-        SELECT DISTINCT c.course_id, c.title
-        FROM teaches t
-        JOIN course c ON t.course_id = c.course_id
-        WHERE t.ID = %s
-    """, (instructor_id,))
+        SELECT course_id, title
+        FROM course
+        ORDER BY course_id
+    """)
     courses = cursor.fetchall()
+
     results = None
 
     if request.method == "POST":
@@ -480,46 +486,43 @@ def class_averages():
         start_year = int(request.form.get("start_year"))
         end_sem = request.form.get("end_sem")
         end_year = int(request.form.get("end_year"))
+
         start_val = start_year * 10 + SEMESTER_ORDER[start_sem]
         end_val = end_year * 10 + SEMESTER_ORDER[end_sem]
 
-        # Multiply year values by 10 for easier ordering
         query = """
-    SELECT 
-        AVG(
-            CASE UPPER(tk.grade)
-                WHEN 'A' THEN 4.0
-                WHEN 'B' THEN 3.0
-                WHEN 'C' THEN 2.0
-                WHEN 'D' THEN 1.0
-                WHEN 'F' THEN 0.0
-                ELSE NULL
-            END
-        ) AS avg_grade
-    FROM takes tk
-    JOIN teaches t 
-        ON tk.course_id = t.course_id 
-       AND tk.sec_id = t.sec_id
-       AND tk.semester = t.semester
-       AND tk.year = t.year
-    WHERE t.ID = %s
-      AND tk.course_id = %s
-      AND (tk.year * 10 + 
-           CASE UPPER(tk.semester)
-               WHEN 'SPRING' THEN 1
-               WHEN 'SUMMER' THEN 2
-               WHEN 'FALL' THEN 3
-               WHEN 'WINTER' THEN 4
-           END)
-          BETWEEN %s AND %s
-      AND tk.grade IS NOT NULL
-"""
+            SELECT 
+                AVG(
+                    CASE UPPER(grade)
+                        WHEN 'A' THEN 4.0
+                        WHEN 'B' THEN 3.0
+                        WHEN 'C' THEN 2.0
+                        WHEN 'D' THEN 1.0
+                        WHEN 'F' THEN 0.0
+                        ELSE NULL
+                    END
+                ) AS avg_grade
+            FROM takes
+            WHERE course_id = %s
+              AND (year * 10 +
+                   CASE UPPER(semester)
+                       WHEN 'SPRING' THEN 1
+                       WHEN 'SUMMER' THEN 2
+                       WHEN 'FALL' THEN 3
+                       WHEN 'WINTER' THEN 4
+                   END)
+                  BETWEEN %s AND %s
+              AND grade IS NOT NULL
+        """
 
-        cursor.execute(query, (instructor_id, course_id, start_val, end_val))
+        cursor.execute(query, (course_id, start_val, end_val))
         results = cursor.fetchone()
-    return render_template("instructor/class_averages.html",
-                           courses=courses,
-                           results=results)
+
+    return render_template(
+        "instructor/class_averages.html",
+        courses=courses,
+        results=results
+    )
 
 
 @app.route("/instructor/best-worst-class", methods=["GET", "POST"])
@@ -533,70 +536,114 @@ def best_worst_class():
         db = get_db()
         cursor = db.cursor(dictionary=True)
 
-        # Convert letter grades to numbers so AVG() works
+        # Subquery to calculate average per course
+        # Then select only courses with MAX or MIN average
         cursor.execute("""
-            SELECT course_id,
-                   AVG(
-                       CASE UPPER(grade)
-                           WHEN 'A' THEN 4.0
-                           WHEN 'B' THEN 3.0
-                           WHEN 'C' THEN 2.0
-                           WHEN 'D' THEN 1.0
-                           WHEN 'F' THEN 0.0
-                           ELSE NULL
-                       END
-                   ) AS avg_grade
-            FROM takes
-            WHERE semester = %s
-              AND grade IS NOT NULL
-            GROUP BY course_id
-            ORDER BY avg_grade DESC
-        """, (semester,))
+            SELECT course_id, avg_grade
+            FROM (
+                SELECT course_id,
+                       AVG(
+                           CASE UPPER(grade)
+                               WHEN 'A' THEN 4.0
+                               WHEN 'B' THEN 3.0
+                               WHEN 'C' THEN 2.0
+                               WHEN 'D' THEN 1.0
+                               WHEN 'F' THEN 0.0
+                               ELSE NULL
+                           END
+                       ) AS avg_grade
+                FROM takes
+                WHERE semester = %s
+                  AND grade IS NOT NULL
+                GROUP BY course_id
+            ) AS sub
+            WHERE avg_grade = (SELECT MAX(avg_grade) FROM (
+                                   SELECT AVG(
+                                       CASE UPPER(grade)
+                                           WHEN 'A' THEN 4.0
+                                           WHEN 'B' THEN 3.0
+                                           WHEN 'C' THEN 2.0
+                                           WHEN 'D' THEN 1.0
+                                           WHEN 'F' THEN 0.0
+                                           ELSE NULL
+                                       END
+                                   ) AS avg_grade
+                                   FROM takes
+                                   WHERE semester = %s
+                                   AND grade IS NOT NULL
+                                   GROUP BY course_id
+                               ) AS max_sub)
+               OR avg_grade = (SELECT MIN(avg_grade) FROM (
+                                   SELECT AVG(
+                                       CASE UPPER(grade)
+                                           WHEN 'A' THEN 4.0
+                                           WHEN 'B' THEN 3.0
+                                           WHEN 'C' THEN 2.0
+                                           WHEN 'D' THEN 1.0
+                                           WHEN 'F' THEN 0.0
+                                           ELSE NULL
+                                       END
+                                   ) AS avg_grade
+                                   FROM takes
+                                   WHERE semester = %s
+                                   AND grade IS NOT NULL
+                                   GROUP BY course_id
+                               ) AS min_sub)
+        """, (semester, semester, semester))
 
         results = cursor.fetchall()
 
     return render_template("instructor/best_worst_class.html", results=results)
 
-@app.route("/instructor/total-students")
+@app.route("/instructor-portal/total-students", methods=["GET"])
 def total_students():
     if session.get("role") != "instructor":
         return redirect("/login")
 
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("""
-        SELECT s.dept_name, COUNT(DISTINCT s.ID) AS total_students
-        FROM student s
-        GROUP BY s.dept_name
-    """)
-    results = cursor.fetchall()
-    return render_template("instructor/total_students.html", results=results)
 
-@app.route("/instructor/current-students", methods=["GET", "POST"])
+    query = """
+        SELECT dept_name,
+               COUNT(DISTINCT ID) AS total_students
+        FROM student
+        GROUP BY dept_name
+        ORDER BY dept_name;
+    """
+
+    cursor.execute(query)
+    results = cursor.fetchall()
+
+    return render_template(
+        "instructor/total_students.html",
+        results=results
+    )
+
+@app.route("/instructor/current-students", methods=["GET"])
 def current_students():
     if session.get("role") != "instructor":
         return redirect("/login")
 
-    results = []
-    if request.method == "POST":
-        semester = request.form.get("semester")
-        db = get_db()
-        cursor = db.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT s.dept_name, COUNT(DISTINCT t.ID) AS current_students
-            FROM student s
-            JOIN takes t ON s.ID = t.ID
-            JOIN section sec ON t.course_id = sec.course_id AND t.sec_id = sec.sec_id
-            WHERE t.semester = %s
-            GROUP BY s.dept_name
-        """, (semester,))
-        results = cursor.fetchall()
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
 
-    return render_template("instructor/current_students.html", results=results)
+    query = """
+        SELECT s.dept_name,
+               COUNT(DISTINCT s.ID) AS current_students
+        FROM student s
+        JOIN takes t ON s.ID = t.ID
+        GROUP BY s.dept_name
+        ORDER BY s.dept_name;
+    """
 
+    cursor.execute(query)
+    results = cursor.fetchall()
 
-
-
+    return render_template(
+        "instructor/current_students.html",
+        results=results,
+        message=None
+    )
 
 
 

@@ -5,21 +5,16 @@
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
+
     <h1>Currently Enrolled Students by Department</h1>
 
-    <form method="POST">
-        <label>Semester:</label>
-        <input type="text" name="semester" required class="form">
-        <button type="submit" class="btn btn-green">Get Results</button>
-    </form>
-
     {% if results %}
-        <h2>Results for semester {{ request.form.semester }}</h2>
         <table border="1" cellpadding="5">
             <tr>
                 <th>Department</th>
                 <th>Current Students</th>
             </tr>
+
             {% for row in results %}
             <tr>
                 <td>{{ row.dept_name }}</td>
@@ -27,8 +22,11 @@
             </tr>
             {% endfor %}
         </table>
+    {% else %}
+        <p>No enrollment data found.</p>
     {% endif %}
 
     <a href="/instructor-portal" class="btn">Back to Portal</a>
+
 </body>
 </html>
