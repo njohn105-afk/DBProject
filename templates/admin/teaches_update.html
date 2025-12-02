@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Assignment</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <h1>Update Assignment</h1>
+    <form method="POST">
+        <label>Course:</label>
+        <select name="course_id" required>
+            <option value="" disabled>Select course</option>
+            {% for c in courses %}
+            <option value="{{ c.course_id }}" {% if c.course_id == course_id %}selected{% endif %}>
+                {{ c.course_id }} - {{ c.title }}
+            </option>
+            {% endfor %}
+        </select><br>
+
+        <label>Section:</label>
+        <input type="text" name="sec_id" value="{{ sec_id }}" class="form"><br>
+
+        <label>Semester:</label>
+        <input type="text" name="semester" value="{{ semester }}" class="form"><br>
+
+        <label>Year:</label>
+        <input type="number" name="year" value="{{ year }}" class="form"><br>
+
+        <label>Instructor:</label>
+        <select name="ID" required>
+            <option value="" disabled>Select instructor</option>
+            {% for i in instructors %}
+            <option value="{{ i.ID }}" {% if i.ID == prefill_ID %}selected{% endif %}>
+                {{ i.name }} ({{ i.dept_name }})
+            </option>
+            {% endfor %}
+        </select><br>
+
+        <button type="submit" class="btn btn-green">Update Assignment</button>
+    </form>
+    <a class="btn" href="/admin/teaches/list">Back to List</a>
+</body>
+</html>

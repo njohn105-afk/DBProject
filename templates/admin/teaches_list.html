@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Teaches Assignments</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <h1>All Assignments</h1>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Course</th>
+            <th>Section</th>
+            <th>Semester</th>
+            <th>Year</th>
+            <th>Instructor</th>
+            <th>Actions</th>
+        </tr>
+        {% for a in assignments %}
+        <tr>
+            <td>{{ a.course_id }}</td>
+            <td>{{ a.sec_id }}</td>
+            <td>{{ a.semester }}</td>
+            <td>{{ a.year }}</td>
+            <td>{{ a.instructor_name or "Unassigned" }}</td>
+            <td>
+                <a class="btn btn-green" href="/admin/teaches/update?course_id={{ a.course_id }}&sec_id={{ a.sec_id }}&semester={{ a.semester }}&year={{ a.year }}">Update</a>
+                <form method="POST" action="/admin/teaches/delete" style="display:inline;">
+                    <input type="hidden" name="course_id" value="{{ a.course_id }}">
+                    <input type="hidden" name="sec_id" value="{{ a.sec_id }}">
+                    <input type="hidden" name="semester" value="{{ a.semester }}">
+                    <input type="hidden" name="year" value="{{ a.year }}">
+                    <button type="submit" class="btn btn-red">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a class="btn" href="/admin/teaches/create">Create New Assignment</a>
+    <a class="btn" href="/admin/teaches">Back to Dashboard</a>
+</body>
+</html>

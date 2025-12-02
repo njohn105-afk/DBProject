@@ -1688,6 +1688,137 @@ def admin_student_delete():
                            category="success",
                            redirect_url="/admin/student")
 
+# -------- ASSIGN CRUD
+
+@app.route("/admin/teaches")
+def teaches_home():
+    if session.get("role") != "admin":
+        return redirect("/login")
+    return render_template("admin/teaches_home.html")
+
+@app.route("/admin/teaches/list")
+def teaches_list():
+    if session.get("role") != "admin":
+        return redirect("/login")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT t.course_id, t.sec_id, t.semester, t.year, t.ID, i.name AS instructor_name
+        FROM teaches t
+        LEFT JOIN instructor i ON t.ID = i.ID
+        ORDER BY t.course_id, t.sec_id
+    """)
+    assignments = cursor.fetchall()
+    return render_template("admin/teaches_list.html", assignments=assignments)
+
+@app.route("/admin/teaches/create", methods=["GET", "POST"])
+def teaches_create():
+    if session.get("role") != "admin":
+        return redirect("/login")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    # Fetch courses and instructors
+    cursor.execute("SELECT course_id, title FROM course ORDER BY course_id")
+    courses = cursor.fetchall()
+    cursor.execute("SELECT ID, name, dept_name FROM instructor ORDER BY name")
+    instructors = cursor.fetchall()
+
+    if request.method == "POST":
+        course_id = request.form.get("course_id")
+        sec_id = request.form.get("sec_id")
+        semester = request.form.get("semester")
+        year = request.form.get("year")
+        ID = request.form.get("ID")
+
+        if ID:
+            cursor.execute("""
+                INSERT INTO teaches (course_id, sec_id, semester, year, ID)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (course_id, sec_id, semester, year, ID))
+            db.commit()
+            return redirect("/admin/teaches/list")
+
+    return render_template("admin/teaches_create.html", courses=courses, instructors=instructors)
+
+@app.route("/admin/teaches/update", methods=["GET", "POST"])
+def teaches_update():
+    if session.get("role") != "admin":
+        return redirect("/login")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True, buffered=True)  # Buffered cursor
+
+    course_id = request.args.get("course_id")
+    sec_id = request.args.get("sec_id")
+    semester = request.args.get("semester")
+    year = request.args.get("year")
+
+    # Fetch courses and instructors
+    cursor.execute("SELECT course_id, title FROM course ORDER BY course_id")
+    courses = cursor.fetchall()
+
+    cursor.execute("SELECT ID, name, dept_name FROM instructor ORDER BY name")
+    instructors = cursor.fetchall()
+
+    # Fetch current assignment
+    cursor.execute("""
+        SELECT ID FROM teaches
+        WHERE course_id=%s AND sec_id=%s AND semester=%s AND year=%s
+    """, (course_id, sec_id, semester, year))
+    current = cursor.fetchone()
+    prefill_ID = current["ID"] if current else None
+
+    if request.method == "POST":
+        new_course_id = request.form.get("course_id")
+        new_sec_id = request.form.get("sec_id")
+        new_semester = request.form.get("semester")
+        new_year = request.form.get("year")
+        ID = request.form.get("ID")
+
+        if ID:
+            # Update assignment
+            cursor.execute("""
+                UPDATE teaches
+                SET course_id=%s, sec_id=%s, semester=%s, year=%s, ID=%s
+                WHERE course_id=%s AND sec_id=%s AND semester=%s AND year=%s
+            """, (new_course_id, new_sec_id, new_semester, new_year, ID,
+                  course_id, sec_id, semester, year))
+            db.commit()
+            return redirect("/admin/teaches/list")
+
+    return render_template("admin/teaches_update.html",
+                           courses=courses,
+                           instructors=instructors,
+                           course_id=course_id,
+                           sec_id=sec_id,
+                           semester=semester,
+                           year=year,
+                           prefill_ID=prefill_ID)
+
+@app.route("/admin/teaches/delete", methods=["POST"])
+def teaches_delete():
+    if session.get("role") != "admin":
+        return redirect("/login")
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    course_id = request.form.get("course_id")
+    sec_id = request.form.get("sec_id")
+    semester = request.form.get("semester")
+    year = request.form.get("year")
+    
+    cursor.execute("""
+        DELETE FROM teaches
+        WHERE course_id=%s AND sec_id=%s AND semester=%s AND year=%s
+    """, (course_id, sec_id, semester, year))
+    
+    db.commit()
+    return redirect("/admin/teaches/list")
+
 
 
 
