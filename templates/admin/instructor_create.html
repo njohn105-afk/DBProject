@@ -1,26 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Portal</title>
+    <title>Create Instructor</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
-
 <body>
-<h1>Create Instructor</h1>
 
-<form method="POST">
-    <label>Name:</label><br>
-    <input type="text" name="name" class="form" required><br><br>
+    <h1>Create Instructor</h1>
 
-    <label>Department:</label><br>
-    <input type="text" name="dept_name" class="form" required><br><br>
+    <form method="POST">
 
-    <label>Salary:</label><br>
-    <input type="number" name="salary" class="form" required><br><br>
+        <label>ID:</label><br>
+        <input type="text" name="ID" class="form" required><br><br>
 
-    <button class="btn-green">Create</button>
-</form>
+        <label>Name:</label><br>
+        <input type="text" name="name" class="form" required><br><br>
 
-<a class="btn" href="/admin/instructor">Back</a>
+        <label>Department:</label><br>
+        <select name="dept_name" class="form" required>
+            <option value="" disabled selected>Select Department</option>
+            {% for d in departments %}
+                <option value="{{ d.dept_name }}">{{ d.dept_name }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label>Salary:</label><br>
+        <input type="number" name="salary" class="form" required><br><br>
+
+        <button type="submit" class="btn-green">Create Instructor</button>
+    </form>
+
+    <a href="/admin/instructor" class="btn">Back</a>
+
 </body>
 </html>
