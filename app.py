@@ -389,6 +389,40 @@ def view_sections():
                            selected_section=selected_section,
                            roster=roster)
 
+#remove student from section
+@app.route("/instructor-portal/section/remove", methods=["POST"])
+def remove_student():
+    if session.get("role") != "instructor":
+        return redirect("/login")
+    
+    db = get_db()
+    cursor = db.cursor()
+    instructor_id = session.get("linked_id")
+
+    course_id = request.form.get("course_id")
+    sec_id = request.form.get("sec_id")
+    semester = request.form.get("semester")
+    year = request.form.get("year")
+    student_id = request.form.get("student_id")
+
+    # Optional: Verify the instructor actually teaches this section
+    cursor.execute("""
+        SELECT * FROM teaches
+        WHERE ID=%s AND course_id=%s AND sec_id=%s AND semester=%s AND year=%s
+    """, (instructor_id, course_id, sec_id, semester, year))
+    teaches = cursor.fetchone()
+    if not teaches:
+        return "You are not authorized to modify this section.", 403
+
+    # Remove student from takes table
+    cursor.execute("""
+        DELETE FROM takes
+        WHERE ID=%s AND course_id=%s AND sec_id=%s AND semester=%s AND year=%s
+    """, (student_id, course_id, sec_id, semester, year))
+    db.commit()
+
+    return redirect("/instructor-portal/section")
+
 # Average grade of all students based on department
 @app.route("/instructor-portal/department-averages", methods=["GET", "POST"])
 def department_averages():
